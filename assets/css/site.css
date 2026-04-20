@@ -1,10 +1,10 @@
 :root {
-  --bg: #0d0f12;
-  --panel: #14181d;
-  --line: #232830;
-  --text: #e9edf2;
-  --muted: #9ca7b3;
-  --accent: #8fc8ff;
+  --bg: #090b1f;
+  --panel: #121638;
+  --line: #2b2f5f;
+  --text: #edf0ff;
+  --muted: #a9afd9;
+  --accent: #8f7dff;
 }
 
 * {
@@ -21,8 +21,10 @@ body {
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background:
-    radial-gradient(circle at 20% 0%, #1a1f27 0%, transparent 35%),
-    radial-gradient(circle at 100% 100%, #121721 0%, transparent 30%),
+    linear-gradient(rgba(9, 11, 31, 0.78), rgba(16, 10, 38, 0.8)),
+    radial-gradient(circle at 20% 0%, #1a2350 0%, transparent 38%),
+    radial-gradient(circle at 100% 100%, #2c1a53 0%, transparent 34%),
+    url("../../images/wallpaper.jpg") center / cover no-repeat fixed,
     var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -38,7 +40,7 @@ body {
   position: sticky;
   top: 0;
   backdrop-filter: blur(8px);
-  background: rgba(13, 15, 18, 0.8);
+  background: rgba(9, 11, 31, 0.84);
 }
 
 .header-row {
@@ -72,7 +74,7 @@ nav a {
 nav a:hover,
 nav a.active {
   color: var(--text);
-  background: #1b2129;
+  background: #1e2555;
 }
 
 main {
@@ -125,7 +127,7 @@ main {
 .button {
   display: inline-block;
   text-decoration: none;
-  color: #0a1016;
+  color: #0c1130;
   background: var(--accent);
   border-radius: 10px;
   padding: 0.52rem 0.9rem;
@@ -156,7 +158,7 @@ main {
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
-  background: #0b0e13;
+  background: #0b0f29;
 }
 
 .video-embed iframe {
@@ -173,7 +175,7 @@ main {
 }
 
 .week-card {
-  background: #11151a;
+  background: #151a42;
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.9rem;
