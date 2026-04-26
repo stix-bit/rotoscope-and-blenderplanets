@@ -153,6 +153,24 @@ main {
   color: var(--muted);
 }
 
+.code-block {
+  margin: 0.75rem 0 0;
+  padding: 1rem 1.1rem;
+  background: #0b0f29;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: pre;
+  font-family: Consolas, "Liberation Mono", Menlo, Monaco, monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.code-block code {
+  font: inherit;
+}
+
 .video-embed {
   margin-top: 0.35rem;
   border: 1px solid var(--line);
