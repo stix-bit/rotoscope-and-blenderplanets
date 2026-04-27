@@ -186,6 +186,14 @@ main {
   border: 0;
 }
 
+.video-embed video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  object-fit: cover;
+}
+
 .weekly-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -203,6 +211,31 @@ main {
 .week-card h3 {
   margin: 0;
   font-size: 0.98rem;
+}
+
+.celestial-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.celestial-card {
+  background: #151a42;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem;
+  min-height: 170px;
+}
+
+.celestial-card h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.desc-slot {
+  margin: 0.75rem 0 0;
+  min-height: 74px;
+  border-top: 1px dashed var(--line);
 }
 
 .weekly-video {
@@ -243,10 +276,18 @@ main {
   .weekly-grid {
     grid-template-columns: 1fr;
   }
+
+  .celestial-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 661px) and (max-width: 960px) {
   .weekly-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .celestial-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
