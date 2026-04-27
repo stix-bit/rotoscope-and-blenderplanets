@@ -282,7 +282,7 @@
         obj.rotation_euler = (0,0,0)
         obj.keyframe_insert("rotation_euler", frame=1)
 
-        direction = -1 if rot_p &lt 0 else 1
+        direction = -1 if rot_p &lt; 0 else 1
         spin_speed = 360 / abs(rot_p)
 
         obj.rotation_euler = (0,0,math.radians(spin_speed * frame_end * direction))
