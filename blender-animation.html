@@ -122,257 +122,301 @@
       <p>
         Below is the Python script I used in Blender to create and animate the Solar System. The script includes texture paths, material creation, planet modeling, orbit setup, and animation keyframes for both orbital and rotational movement.
       
-      <pre class="code-block"><code>
-      import bpy
-      import math
+      <pre class="code-block">
+<code>  <b>Moon Script:</b>
+import bpy
+import math
 
-      # =========================================================
-      # 🔧 TEXTURE PATHS
-      # =========================================================
-      T = {
-        "sun": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_sun.jpg",
-        "mercury": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_mercury.jpg",
-        "venus": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_venus_surface.jpg",
-        "earth": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_earth_daymap.jpg",
-        "mars": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_mars.jpg",
-        "jupiter": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_jupiter.jpg",
-        "saturn": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_saturn.jpg",
-        "uranus": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_uranus.jpg",
-        "neptune": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_neptune.jpg",
-        "pluto": r"C:\Users\johns\OneDrive\Documents\blender planet textures\plutomap1k.jpg",
-        "moon": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_moon.jpg",
-        "rings": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_saturn_ring_alpha.png",
-        "space": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_stars_milky_way.jpg"
-      }
+# ============================================
+# 🔧 TEXTURE PATHS (EDIT THESE)
+# ============================================
+moon_texture_path = r"C:\path\to\your\moon_texture.jpg"
+space_texture_path = r"C:\path\to\your\space_texture.jpg"
 
-      # =========================================================
-      # CLEAN SCENE
-      # =========================================================
-      bpy.ops.object.select_all(action='SELECT')
-      bpy.ops.object.delete(use_global=False)
+# ============================================
+# 🧹 CLEAN SCENE
+# ============================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
 
-      # =========================================================
-      # MATERIAL CREATION
-      # =========================================================
-      def mat_tex(name, path, emission=False):
-        mat = bpy.data.materials.new(name)
-        mat.use_nodes = True
+# ============================================
+# 🌕 CREATE MOON
+# ============================================
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
+moon = bpy.context.active_object
+moon.name = "Moon"
 
-        nodes = mat.node_tree.nodes
-        links = mat.node_tree.links
-        nodes.clear()
+# Smooth shading
+bpy.ops.object.shade_smooth()
 
-        tex = nodes.new("ShaderNodeTexImage")
-        tex.image = bpy.data.images.load(path)
-        tex.image.colorspace_settings.name = 'sRGB'
+# ============================================
+# 🎨 MOON MATERIAL WITH TEXTURE
+# ============================================
+mat = bpy.data.materials.new(name="MoonMaterial")
+mat.use_nodes = True
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
 
-        output = nodes.new("ShaderNodeOutputMaterial")
+# Clear default nodes
+for node in nodes:
+    nodes.remove(node)
 
-        if emission:
-          em = nodes.new("ShaderNodeEmission")
+# Create nodes
+output = nodes.new(type='ShaderNodeOutputMaterial')
+bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
+tex = nodes.new(type='ShaderNodeTexImage')
 
-          links.new(tex.outputs["Color"], em.inputs["Color"])
-          links.new(em.outputs["Emission"], output.inputs["Surface"])
+# Load texture
+tex.image = bpy.data.images.load(moon_texture_path)
 
-        else:
-          bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+# Link nodes
+links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 
-          bsdf.inputs["Roughness"].default_value = 1.0
+# Assign material
+moon.data.materials.append(mat)
 
-          # SAFE specular handling (no crashes)
-          if "Specular IOR Level" in bsdf.inputs:
-            bsdf.inputs["Specular IOR Level"].default_value = 0.5
+# ============================================
+# 🔄 ROTATION ANIMATION (27 FRAMES)
+# ============================================
+bpy.context.scene.frame_start = 1
+bpy.context.scene.frame_end = 27
 
-          links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-          links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+moon.rotation_euler = (0, 0, 0)
+moon.keyframe_insert(data_path="rotation_euler", frame=1)
 
-        return mat
+moon.rotation_euler = (0, 0, math.radians(360))
+moon.keyframe_insert(data_path="rotation_euler", frame=27)
 
-      # =========================================================
-      # PLANET CREATION
-      # =========================================================
-      def planet(name, size, dist, tex):
-        bpy.ops.mesh.primitive_uv_sphere_add(radius=size, location=(dist, 0, 0))
-        obj = bpy.context.object
-        obj.name = name
-        obj.data.materials.append(mat_tex(name+"_mat", tex))
-        return obj
+# Make it linear (no easing)
+for fcurve in moon.animation_data.action.fcurves:
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
 
-      def orbit(obj):
-        bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0,0,0))
-        o = bpy.context.object
-        obj.parent = o
-        return o
+# ============================================
+# 🌌 WORLD SPACE BACKGROUND
+# ============================================
+world = bpy.context.scene.world
+world.use_nodes = True
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
 
-      # =========================================================
-      # SPACE BACKGROUND
-      # =========================================================
-      world = bpy.context.scene.world
-      world.use_nodes = True
+# Clear nodes
+for node in wnodes:
+    wnodes.remove(node)
 
-      nodes = world.node_tree.nodes
-      links = world.node_tree.links
-      nodes.clear()
+# Create nodes
+w_output = wnodes.new(type='ShaderNodeOutputWorld')
+w_bg = wnodes.new(type='ShaderNodeBackground')
+w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
 
-      bg = nodes.new("ShaderNodeBackground")
-      env = nodes.new("ShaderNodeTexEnvironment")
-      out = nodes.new("ShaderNodeOutputWorld")
+# Load space texture
+w_tex.image = bpy.data.images.load(space_texture_path)
 
-      env.image = bpy.data.images.load(T["space"])
-      env.image.colorspace_settings.name = 'sRGB'
+# Link nodes
+wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
 
-      bg.inputs["Strength"].default_value = 1.5
+  <b>Earth script:</b>
+import bpy
+import math
 
-      links.new(env.outputs["Color"], bg.inputs["Color"])
-      links.new(bg.outputs["Background"], out.inputs["Surface"])
+# ============================================
+# 🔧 TEXTURE PATHS (EDIT THESE)
+# ============================================
+earth_texture_path = r"C:\path\to\your\earth_texture.jpg"
+space_texture_path = r"C:\path\to\your\space_texture.jpg"
 
-      # =========================================================
-      # SUN
-      # =========================================================
-      sun = planet("Sun", 3, 0, T["sun"])
-      sun.data.materials[0] = mat_tex("sun_mat", T["sun"], emission=True)
+# ============================================
+# 🧹 CLEAN SCENE
+# ============================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
 
-      bpy.ops.object.light_add(type='SUN', location=(0,0,0))
-      light = bpy.context.object
+# ============================================
+# 🌍 CREATE EARTH
+# ============================================
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
+earth = bpy.context.active_object
+earth.name = "Earth"
 
-      light.data.energy = 3
-      light.rotation_euler = (math.radians(45), math.radians(30), 0)
+# Smooth shading
+bpy.ops.object.shade_smooth()
 
-      # =========================================================
-      # PLANETS (REAL ORBIT RATIOS)
-      # orbital_period = Earth years (scaled)
-      # rotation_period = hours (sign = direction)
-      # =========================================================
-      data = [
-        ("Mercury", 0.3, 5, 0.24, 1407),
-        ("Venus",   0.5, 7, 0.62, -5832),
-        ("Earth",   0.5, 9, 1.0, 24),
-        ("Mars",    0.4, 11, 1.88, 24.6),
-        ("Jupiter", 1.5, 15, 11.86, 9.9),
-        ("Saturn",  1.2, 19, 29.46, 10.7),
-        ("Uranus",  1.0, 23, 84.01, -17.2),
-        ("Neptune", 1.0, 27, 164.8, 16.1),
-        ("Pluto",   0.2, 31, 248.0, -153),
-      ]
+# ============================================
+# 🎨 EARTH MATERIAL WITH TEXTURE
+# ============================================
+mat = bpy.data.materials.new(name="EarthMaterial")
+mat.use_nodes = True
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
 
-      planets = {}
+# Clear default nodes
+for node in nodes:
+    nodes.remove(node)
 
-      for n, size, dist, orbit_p, rot_p in data:
-        obj = planet(n, size, dist, T[n.lower()])
-        o = orbit(obj)
-        planets[n] = (obj, o, orbit_p, rot_p)
+# Create nodes
+output = nodes.new(type='ShaderNodeOutputMaterial')
+bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
+tex = nodes.new(type='ShaderNodeTexImage')
 
-      # =========================================================
-      # EARTH MOON
-      # =========================================================
-      earth = planets["Earth"][0]
+# Load Earth texture
+tex.image = bpy.data.images.load(earth_texture_path)
 
-      bpy.ops.mesh.primitive_uv_sphere_add(radius=0.15)
-      moon = bpy.context.object
-      moon.name = "Moon"
-      moon.data.materials.append(mat_tex("moon_mat", T["moon"]))
+# Link nodes
+links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 
-      moon.parent = earth
-      moon.location = (1.5, 0, 0)  # local orbit around Earth
+# Assign material
+earth.data.materials.append(mat)
 
-      # =========================================================
-      # SATURN RINGS
-      # =========================================================
-      import math
+# ============================================
+# 🔄 ROTATION ANIMATION (365 FRAMES)
+# ============================================
+bpy.context.scene.frame_start = 1
+bpy.context.scene.frame_end = 365
 
-      saturn = planets["Saturn"][0]
+earth.rotation_euler = (0, 0, 0)
+earth.keyframe_insert(data_path="rotation_euler", frame=1)
 
-      bpy.ops.object.empty_add(type='PLAIN_AXES', location=saturn.location)
-      ring_anchor = bpy.context.object
-      ring_anchor.name = "Saturn_Ring_Anchor"
+earth.rotation_euler = (0, 0, math.radians(360))
+earth.keyframe_insert(data_path="rotation_euler", frame=365)
 
-      # IMPORTANT: follow Saturn orbit movement
-      ring_anchor.parent = saturn.parent
+# Linear interpolation (constant speed)
+for fcurve in earth.animation_data.action.fcurves:
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
 
-      bpy.ops.mesh.primitive_torus_add(
-        major_radius=2.2,
-        minor_radius=0.05,
-        location=saturn.location
-      )
+# ============================================
+# 🌌 WORLD SPACE BACKGROUND
+# ============================================
+world = bpy.context.scene.world
+world.use_nodes = True
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
 
-      rings = bpy.context.object
-      rings.name = "Saturn_Rings"
+# Clear nodes
+for node in wnodes:
+    wnodes.remove(node)
 
-      rings.data.materials.append(mat_tex("ring_mat", T["rings"]))
+# Create nodes
+w_output = wnodes.new(type='ShaderNodeOutputWorld')
+w_bg = wnodes.new(type='ShaderNodeBackground')
+w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
 
-      rings.parent = ring_anchor
+# Load space texture
+w_tex.image = bpy.data.images.load(space_texture_path)
 
-      # reset local position
-      rings.location = (0, 0, 0)
+# Link nodes
+wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
 
-      # flat ring (XY plane)
-      rings.rotation_euler = (math.radians(90), 0, 0)
+# ============================================
+# ☀️ OPTIONAL LIGHT (so Earth isn't black)
+# ============================================
+bpy.ops.object.light_add(type='SUN', location=(5, 5, 5))
 
-      # Saturn axial tilt (safe way)
-      tilt = math.radians(26.7)
-      rings.rotation_euler = (math.radians(90 + 26.7), 0, 0)
+  <b>Sun script:</b>
+import bpy
+import math
 
-      rings.scale = (1.5, 1.5, 1.5)
+# ============================================
+# 🔧 TEXTURE PATHS (EDIT THESE)
+# ============================================
+sun_texture_path = r"C:\path\to\your\sun_texture.jpg"
+space_texture_path = r"C:\path\to\your\space_texture.jpg"
 
-      # =========================================================
-      # ANIMATION SETTINGS
-      # =========================================================
-      frame_end = 360
-      bpy.context.scene.frame_end = frame_end
+# ============================================
+# 🧹 CLEAN SCENE
+# ============================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
 
-      for name, (obj, orb, orbit_p, rot_p) in planets.items():
+# ============================================
+# ☀️ CREATE SUN (SCALE 2)
+# ============================================
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
+sun = bpy.context.active_object
+sun.name = "Sun"
 
-        # ORBIT SPEED (scaled realistic ratios)
-        orb.rotation_euler = (0,0,0)
-        orb.keyframe_insert("rotation_euler", frame=1)
+# Scale to 2
+sun.scale = (2, 2, 2)
 
-        orbit_speed = 360 / orbit_p
-        orb.rotation_euler = (0,0,math.radians(orbit_speed))
-        orb.keyframe_insert("rotation_euler", frame=frame_end)
+# Smooth shading
+bpy.ops.object.shade_smooth()
 
-        # ROTATION
-        obj.rotation_euler = (0,0,0)
-        obj.keyframe_insert("rotation_euler", frame=1)
+# ============================================
+# 🔥 SUN MATERIAL (EMISSION + TEXTURE)
+# ============================================
+mat = bpy.data.materials.new(name="SunMaterial")
+mat.use_nodes = True
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
 
-        direction = -1 if rot_p &lt; 0 else 1
-        spin_speed = 360 / abs(rot_p)
+# Clear default nodes
+for node in nodes:
+    nodes.remove(node)
 
-        obj.rotation_euler = (0,0,math.radians(spin_speed * frame_end * direction))
-        obj.keyframe_insert("rotation_euler", frame=frame_end)
+# Create nodes
+output = nodes.new(type='ShaderNodeOutputMaterial')
+emission = nodes.new(type='ShaderNodeEmission')
+tex = nodes.new(type='ShaderNodeTexImage')
 
-      # =========================================================
-      # INFINITE LOOPING
-      # =========================================================
-      for obj in bpy.data.objects:
-        ad = obj.animation_data
-        if not ad:
-          continue
+# Load texture
+tex.image = bpy.data.images.load(sun_texture_path)
 
-        action = ad.action
-        if not action or not hasattr(action, "fcurves"):
-          continue
+# Connect texture to emission color
+links.new(tex.outputs['Color'], emission.inputs['Color'])
+links.new(emission.outputs['Emission'], output.inputs['Surface'])
 
-        for fc in action.fcurves:
+# Increase brightness
+emission.inputs['Strength'].default_value = 10
 
-          # ensure linear interpolation
-          for kp in fc.keyframe_points:
-            kp.interpolation = 'LINEAR'
+# Assign material
+sun.data.materials.append(mat)
 
-          # remove old modifiers safely
-          for m in list(fc.modifiers):
-            fc.modifiers.remove(m)
+# ============================================
+# 🔄 ROTATION ANIMATION (500 FRAMES)
+# ============================================
+bpy.context.scene.frame_start = 1
+bpy.context.scene.frame_end = 500
 
-          # add cycles
-          mod = fc.modifiers.new(type='CYCLES')
-          mod.mode_before = 'REPEAT'
-          mod.mode_after = 'REPEAT'
+sun.rotation_euler = (0, 0, 0)
+sun.keyframe_insert(data_path="rotation_euler", frame=1)
 
-      # =========================================================
-      # CAMERA
-      # =========================================================
-      bpy.ops.object.camera_add(location=(0, -70, 25), rotation=(math.radians(70), 0, 0))
-      bpy.context.scene.camera = bpy.context.object
-      bpy.context.view_layer.update()</code></pre>
+sun.rotation_euler = (0, 0, math.radians(360))
+sun.keyframe_insert(data_path="rotation_euler", frame=500)
+
+# Linear interpolation (no easing)
+for fcurve in sun.animation_data.action.fcurves:
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
+
+# ============================================
+# 🌌 WORLD SPACE BACKGROUND
+# ============================================
+world = bpy.context.scene.world
+world.use_nodes = True
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
+
+# Clear nodes
+for node in wnodes:
+    wnodes.remove(node)
+
+# Create nodes
+w_output = wnodes.new(type='ShaderNodeOutputWorld')
+w_bg = wnodes.new(type='ShaderNodeBackground')
+w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
+
+# Load space texture
+w_tex.image = bpy.data.images.load(space_texture_path)
+
+# Link nodes
+wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
+
+      </code></pre>
     </section>  
 
   </main>
