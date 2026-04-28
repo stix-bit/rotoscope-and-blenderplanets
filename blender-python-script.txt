@@ -1,165 +1,22 @@
-<!DOCTYPE HTML>
-<html lang="en">
-<head>
-  <title>Blender Animation</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="assets/css/site.css">
-</head>
-<body>
-  <header class="site-header">
-    <div class="site-shell header-row">
-      <a class="brand" href="index.html">JSP Multimedia & Authoring Portfolio</a>
-      <nav>
-        <a href="index.html">Home</a>
-        <a class="active" href="blender-animation.html">Blender Animation</a>
-        <a href="rotoscoping-animation.html">Rotoscoping Animation</a>
-      </nav>
-    </div>
-  </header>
+Moon Script:
 
-  <main class="site-shell">
-    <h1 class="page-title">Blender Animation</h1>
-    <p class="page-intro">
-      This page showcases my Blender animation projects, highlighting the core workflow and techniques I use to create compelling 3D animations. From modeling and rigging to lighting and rendering, I focus on creating visually engaging scenes with efficient production methods.
-    </p>
-
-    <section class="section">
-      <h2>Project Overview</h2>
-      <p>
-        In this project, I created a model and animated Solar System using Blender. The animation features the planets orbiting around the sun, demonstrating my skills in 3D modeling, rigging, and animation techniques.
-      </p>
-
-      <h3>Final Animation:</h3>
-      <div class="video-embed"></div>
-      <p class="video-note">*Final animation video will be added here once rendered*</p>
-    </section>
-
-    <section class="section">
-      <h2>Tools &amp; Software Used</h2>
-      <ul>
-        <li>Blender 3D</li>
-      </ul>
-      <h3>Step-by-Step Procedure</h3>
-      <ol class="procedure-list">
-        <li>Add a sphere (planet): in Blender press <strong>Shift + A → Mesh → UV Sphere</strong>, then press <strong>S</strong> to scale.</li>
-        <li>Smooth the sphere: select it, right-click → <strong>Shade Smooth</strong>.</li>
-        <li>Add a material: open Material Properties, click <strong>New</strong> (Principled BSDF).</li>
-        <li>Apply a texture: in Base Color choose <strong>Image Texture</strong> and load your planet map.</li>
-        <li>Preview the material: press <strong>Z → Material Preview</strong> or use the viewport shading icon.</li>
-        <li>Animate rotation: at frame 1 insert a rotation keyframe (<strong>I → Rotation</strong>); at frame 250 (or 365) rotate Z by 360° and insert another keyframe.</li>
-        <li>Add a space background (optional): World Properties → Environment Texture → load a space image.</li>
-      </ol>
-    </section>
-
-    <section class="section">
-      <h2>Planet Age Calculator</h2>
-      <ul>
-        <li>Will be added when all celestial bodies have been modeled</li>
-      </ul>
-    </section>
-
-    <section class="section">
-      <h2>Each Celestial Body Description</h2>
-      <div class="celestial-grid">
-        <article class="celestial-card">
-          <h3>Sun</h3>
-          <div class="video-embed weekly-video">
-            <video autoplay loop muted playsinline preload="metadata">
-              <source src="videos/Sun.mp4" type="video/mp4">
-            </video>
-          </div>
-          <p class="desc-slot">A massive star at the center of the solar system that provides light and energy to all planets.<br>
-            <strong>Revolution:</strong> Orbits the center of the Milky Way galaxy<br>
-            <strong>Orbit period:</strong> ~225–250 million years (galactic year)<br>
-            <strong>Distance:</strong> ~26,000 light-years from the center of the Milky Way</p>
-        </article>
-        <article class="celestial-card">
-          <h3>Mercury</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Venus</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Earth</h3>
-          <div class="video-embed weekly-video">
-            <video autoplay loop muted playsinline preload="metadata">
-              <source src="videos/Earth.mp4" type="video/mp4">
-            </video>
-          </div>
-          <p class="desc-slot">The third planet from the Sun and the only known planet that supports life, with liquid water and an atmosphere.<br>
-            <strong>Revolution:</strong> Orbits the Sun<br>
-            <strong>Orbit period:</strong> ~365.25 days (1 year)<br>
-            <strong>Distance:</strong> ~149.6 million km from the Sun (1 AU)</p>
-        </article>
-        <article class="celestial-card">
-          <h3>Moon</h3>
-          <div class="video-embed weekly-video">
-            <video autoplay loop muted playsinline preload="metadata">
-              <source src="videos/Moon.mp4" type="video/mp4">
-            </video>
-          </div>
-          <p class="desc-slot">Earth’s only natural satellite, responsible for tides and stabilizing Earth’s tilt.<br>
-            <strong>Revolution:</strong> Orbits the Earth<br>
-            <strong>Orbit period:</strong> ~27.3 days (sidereal period) / ~29.5 days (phase cycle)<br>
-            <strong>Distance:</strong> ~384,400 km from Earth</p>
-        </article>
-        <article class="celestial-card">
-          <h3>Mars</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Jupiter</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Saturn</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Uranus</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Neptune</h3>
-          <p class="desc-slot"></p>
-        </article>
-        <article class="celestial-card">
-          <h3>Pluto</h3>
-          <p class="desc-slot"></p>
-        </article>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>Blender Python Script</h2>
-      <p>
-        Below is the Python script I used in Blender to create and animate the Solar System. The script includes texture paths, material creation, planet modeling, orbit setup, and animation keyframes for both orbital and rotational movement.
-      </p>
-      <p>
-        <a class="button" href="blender-python-script.txt" download>Download Blender Python Script (.txt)</a>
-      </p>
-      <pre class="code-block">
-<code>  <b>Moon Script:</b>
 import bpy
 import math
 
 # ============================================
-# 🔧 TEXTURE PATHS (EDIT THESE)
+# TEXTURE PATHS (EDIT THESE)
 # ============================================
 moon_texture_path = r"C:\path\to\your\moon_texture.jpg"
 space_texture_path = r"C:\path\to\your\space_texture.jpg"
 
 # ============================================
-# 🧹 CLEAN SCENE
+# CLEAN SCENE
 # ============================================
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 
 # ============================================
-# 🌕 CREATE MOON
+# CREATE MOON
 # ============================================
 bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
 moon = bpy.context.active_object
@@ -169,7 +26,7 @@ moon.name = "Moon"
 bpy.ops.object.shade_smooth()
 
 # ============================================
-# 🎨 MOON MATERIAL WITH TEXTURE
+# MOON MATERIAL WITH TEXTURE
 # ============================================
 mat = bpy.data.materials.new(name="MoonMaterial")
 mat.use_nodes = True
@@ -196,7 +53,7 @@ links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 moon.data.materials.append(mat)
 
 # ============================================
-# 🔄 ROTATION ANIMATION (27 FRAMES)
+# ROTATION ANIMATION (27 FRAMES)
 # ============================================
 bpy.context.scene.frame_start = 1
 bpy.context.scene.frame_end = 27
@@ -213,7 +70,7 @@ for fcurve in moon.animation_data.action.fcurves:
         kp.interpolation = 'LINEAR'
 
 # ============================================
-# 🌌 WORLD SPACE BACKGROUND
+# WORLD SPACE BACKGROUND
 # ============================================
 world = bpy.context.scene.world
 world.use_nodes = True
@@ -236,24 +93,25 @@ w_tex.image = bpy.data.images.load(space_texture_path)
 wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
 wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
 
-  <b>Earth script:</b>
+Earth script:
+
 import bpy
 import math
 
 # ============================================
-# 🔧 TEXTURE PATHS (EDIT THESE)
+# TEXTURE PATHS (EDIT THESE)
 # ============================================
 earth_texture_path = r"C:\path\to\your\earth_texture.jpg"
 space_texture_path = r"C:\path\to\your\space_texture.jpg"
 
 # ============================================
-# 🧹 CLEAN SCENE
+# CLEAN SCENE
 # ============================================
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 
 # ============================================
-# 🌍 CREATE EARTH
+# CREATE EARTH
 # ============================================
 bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
 earth = bpy.context.active_object
@@ -263,7 +121,7 @@ earth.name = "Earth"
 bpy.ops.object.shade_smooth()
 
 # ============================================
-# 🎨 EARTH MATERIAL WITH TEXTURE
+# EARTH MATERIAL WITH TEXTURE
 # ============================================
 mat = bpy.data.materials.new(name="EarthMaterial")
 mat.use_nodes = True
@@ -290,7 +148,7 @@ links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
 earth.data.materials.append(mat)
 
 # ============================================
-# 🔄 ROTATION ANIMATION (365 FRAMES)
+# ROTATION ANIMATION (365 FRAMES)
 # ============================================
 bpy.context.scene.frame_start = 1
 bpy.context.scene.frame_end = 365
@@ -307,7 +165,7 @@ for fcurve in earth.animation_data.action.fcurves:
         kp.interpolation = 'LINEAR'
 
 # ============================================
-# 🌌 WORLD SPACE BACKGROUND
+# WORLD SPACE BACKGROUND
 # ============================================
 world = bpy.context.scene.world
 world.use_nodes = True
@@ -331,28 +189,29 @@ wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
 wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
 
 # ============================================
-# ☀️ OPTIONAL LIGHT (so Earth isn't black)
+# OPTIONAL LIGHT (so Earth isn't black)
 # ============================================
 bpy.ops.object.light_add(type='SUN', location=(5, 5, 5))
 
-  <b>Sun script:</b>
+Sun script:
+
 import bpy
 import math
 
 # ============================================
-# 🔧 TEXTURE PATHS (EDIT THESE)
+# TEXTURE PATHS (EDIT THESE)
 # ============================================
 sun_texture_path = r"C:\path\to\your\sun_texture.jpg"
 space_texture_path = r"C:\path\to\your\space_texture.jpg"
 
 # ============================================
-# 🧹 CLEAN SCENE
+# CLEAN SCENE
 # ============================================
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 
 # ============================================
-# ☀️ CREATE SUN (SCALE 2)
+# CREATE SUN (SCALE 2)
 # ============================================
 bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
 sun = bpy.context.active_object
@@ -365,7 +224,7 @@ sun.scale = (2, 2, 2)
 bpy.ops.object.shade_smooth()
 
 # ============================================
-# 🔥 SUN MATERIAL (EMISSION + TEXTURE)
+# SUN MATERIAL (EMISSION + TEXTURE)
 # ============================================
 mat = bpy.data.materials.new(name="SunMaterial")
 mat.use_nodes = True
@@ -395,7 +254,7 @@ emission.inputs['Strength'].default_value = 10
 sun.data.materials.append(mat)
 
 # ============================================
-# 🔄 ROTATION ANIMATION (500 FRAMES)
+# ROTATION ANIMATION (500 FRAMES)
 # ============================================
 bpy.context.scene.frame_start = 1
 bpy.context.scene.frame_end = 500
@@ -412,7 +271,7 @@ for fcurve in sun.animation_data.action.fcurves:
         kp.interpolation = 'LINEAR'
 
 # ============================================
-# 🌌 WORLD SPACE BACKGROUND
+# WORLD SPACE BACKGROUND
 # ============================================
 world = bpy.context.scene.world
 world.use_nodes = True
@@ -434,17 +293,3 @@ w_tex.image = bpy.data.images.load(space_texture_path)
 # Link nodes
 wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
 wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
-
-      </code></pre>
-    </section>  
-
-  </main>
-
-  <footer class="site-footer">
-    <div class="site-shell footer-row">
-      <span>&copy; 2026 Animation Studio</span>
-      <a href="rotoscoping-animation.html">Next: Rotoscoping Animation</a>
-    </div>
-  </footer>
-</body>
-</html>
