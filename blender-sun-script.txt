@@ -1,0 +1,99 @@
+
+import bpy
+import math
+
+# ============================================
+# TEXTURE PATHS (EDIT THESE)
+# ============================================
+sun_texture_path = r"C:\path\to\your\sun_texture.jpg"
+space_texture_path = r"C:\path\to\your\space_texture.jpg"
+
+# ============================================
+# CLEAN SCENE
+# ============================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
+
+# ============================================
+# CREATE SUN (SCALE 2)
+# ============================================
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
+sun = bpy.context.active_object
+sun.name = "Sun"
+
+# Scale to 2
+sun.scale = (2, 2, 2)
+
+# Smooth shading
+bpy.ops.object.shade_smooth()
+
+# ============================================
+# SUN MATERIAL (EMISSION + TEXTURE)
+# ============================================
+mat = bpy.data.materials.new(name="SunMaterial")
+mat.use_nodes = True
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
+
+# Clear default nodes
+for node in nodes:
+    nodes.remove(node)
+
+# Create nodes
+output = nodes.new(type='ShaderNodeOutputMaterial')
+emission = nodes.new(type='ShaderNodeEmission')
+tex = nodes.new(type='ShaderNodeTexImage')
+
+# Load texture
+tex.image = bpy.data.images.load(sun_texture_path)
+
+# Connect texture to emission color
+links.new(tex.outputs['Color'], emission.inputs['Color'])
+links.new(emission.outputs['Emission'], output.inputs['Surface'])
+
+# Increase brightness
+emission.inputs['Strength'].default_value = 10
+
+# Assign material
+sun.data.materials.append(mat)
+
+# ============================================
+# ROTATION ANIMATION (500 FRAMES)
+# ============================================
+bpy.context.scene.frame_start = 1
+bpy.context.scene.frame_end = 500
+
+sun.rotation_euler = (0, 0, 0)
+sun.keyframe_insert(data_path="rotation_euler", frame=1)
+
+sun.rotation_euler = (0, 0, math.radians(360))
+sun.keyframe_insert(data_path="rotation_euler", frame=500)
+
+# Linear interpolation (no easing)
+for fcurve in sun.animation_data.action.fcurves:
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
+
+# ============================================
+# WORLD SPACE BACKGROUND
+# ============================================
+world = bpy.context.scene.world
+world.use_nodes = True
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
+
+# Clear nodes
+for node in wnodes:
+    wnodes.remove(node)
+
+# Create nodes
+w_output = wnodes.new(type='ShaderNodeOutputWorld')
+w_bg = wnodes.new(type='ShaderNodeBackground')
+w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
+
+# Load space texture
+w_tex.image = bpy.data.images.load(space_texture_path)
+
+# Link nodes
+wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
