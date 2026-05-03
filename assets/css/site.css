@@ -242,6 +242,17 @@ main {
   margin-top: 0.65rem;
 }
 
+/* Step images: show full image scaled down without cropping */
+.step-image {
+  width: 160px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  display: inline-block;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
 }

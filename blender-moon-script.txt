@@ -1,12 +1,11 @@
-
 import bpy
 import math
 
 # ============================================
-# TEXTURE PATHS (EDIT THESE)
+# TEXTURE PATHS
 # ============================================
-moon_texture_path = r"C:\path\to\your\moon_texture.jpg"
-space_texture_path = r"C:\path\to\your\space_texture.jpg"
+moon_texture_path = r"INSERT YOUR PATH HERE"
+space_texture_path = r"INSERT YOUR PATH HERE"
 
 # ============================================
 # CLEAN SCENE
@@ -20,35 +19,29 @@ bpy.ops.object.delete(use_global=False)
 bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
 moon = bpy.context.active_object
 moon.name = "Moon"
-
-# Smooth shading
 bpy.ops.object.shade_smooth()
 
 # ============================================
-# MOON MATERIAL WITH TEXTURE
+# MOON MATERIAL
 # ============================================
 mat = bpy.data.materials.new(name="MoonMaterial")
 mat.use_nodes = True
+
 nodes = mat.node_tree.nodes
 links = mat.node_tree.links
+nodes.clear()
 
-# Clear default nodes
-for node in nodes:
-    nodes.remove(node)
-
-# Create nodes
 output = nodes.new(type='ShaderNodeOutputMaterial')
 bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
 tex = nodes.new(type='ShaderNodeTexImage')
 
-# Load texture
-tex.image = bpy.data.images.load(moon_texture_path)
+try:
+    tex.image = bpy.data.images.load(moon_texture_path)
+    links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+except:
+    pass
 
-# Link nodes
-links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
 links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
-
-# Assign material
 moon.data.materials.append(mat)
 
 # ============================================
@@ -63,31 +56,49 @@ moon.keyframe_insert(data_path="rotation_euler", frame=1)
 moon.rotation_euler = (0, 0, math.radians(360))
 moon.keyframe_insert(data_path="rotation_euler", frame=27)
 
-# Make it linear (no easing)
-for fcurve in moon.animation_data.action.fcurves:
+# ============================================
+# BLENDER 5+ SAFE FCURVE FIX
+# ============================================
+if moon.animation_data is None:
+    moon.animation_data_create()
+
+action = moon.animation_data.action
+
+if action:
+    fcurve = action.fcurve_ensure_for_datablock(
+        datablock=moon,
+        data_path="rotation_euler",
+        index=2
+    )
+
     for kp in fcurve.keyframe_points:
         kp.interpolation = 'LINEAR'
 
+    fcurve.modifiers.new(type='CYCLES')
+
 # ============================================
-# WORLD SPACE BACKGROUND
+# WORLD BACKGROUND (SAFE SETUP)
 # ============================================
 world = bpy.context.scene.world
+
+if world is None:
+    world = bpy.data.worlds.new("World")
+    bpy.context.scene.world = world
+
 world.use_nodes = True
+
 wnodes = world.node_tree.nodes
 wlinks = world.node_tree.links
+wnodes.clear()
 
-# Clear nodes
-for node in wnodes:
-    wnodes.remove(node)
-
-# Create nodes
 w_output = wnodes.new(type='ShaderNodeOutputWorld')
 w_bg = wnodes.new(type='ShaderNodeBackground')
 w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
 
-# Load space texture
-w_tex.image = bpy.data.images.load(space_texture_path)
+try:
+    w_tex.image = bpy.data.images.load(space_texture_path)
+    wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+except:
+    pass
 
-# Link nodes
-wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
 wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])

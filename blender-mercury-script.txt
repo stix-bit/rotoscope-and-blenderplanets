@@ -1,0 +1,74 @@
+import bpy
+import math
+
+tex_path = r"INSERT PATH HERE"
+space_path = r"INSERT PATH HERE"
+
+# Clean scene
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
+
+# Planet
+bpy.ops.mesh.primitive_uv_sphere_add(radius=0.4, location=(4, 0, 0))
+mercury = bpy.context.active_object
+mercury.name = "Mercury"
+bpy.ops.object.shade_smooth()
+
+# Material
+mat = bpy.data.materials.new("MercuryMat")
+mat.use_nodes = True
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
+nodes.clear()
+
+out = nodes.new("ShaderNodeOutputMaterial")
+bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+tex = nodes.new("ShaderNodeTexImage")
+
+try:
+    tex.image = bpy.data.images.load(tex_path)
+    links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+except:
+    pass
+
+links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+mercury.data.materials.append(mat)
+
+# Animation
+mercury.rotation_euler = (0, 0, 0)
+mercury.keyframe_insert("rotation_euler", frame=1)
+
+mercury.rotation_euler = (0, 0, math.radians(360))
+mercury.keyframe_insert("rotation_euler", frame=88)
+
+if mercury.animation_data is None:
+    mercury.animation_data_create()
+
+action = mercury.animation_data.action
+if action:
+    fcurve = action.fcurve_ensure_for_datablock(
+        datablock=mercury,
+        data_path="rotation_euler",
+        index=2
+    )
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
+    fcurve.modifiers.new(type='CYCLES')
+
+# World
+world = bpy.data.worlds.new("World") if not bpy.context.scene.world else bpy.context.scene.world
+bpy.context.scene.world = world
+world.use_nodes = True
+
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
+wnodes.clear()
+
+wout = wnodes.new("ShaderNodeOutputWorld")
+wbg = wnodes.new("ShaderNodeBackground")
+wtex = wnodes.new("ShaderNodeTexEnvironment")
+
+wtex.image = bpy.data.images.load(space_path)
+
+wlinks.new(wtex.outputs["Color"], wbg.inputs["Color"])
+wlinks.new(wbg.outputs["Background"], wout.inputs["Surface"])
