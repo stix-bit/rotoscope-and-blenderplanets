@@ -55,8 +55,8 @@
       </ul>
 
        <h3>Step-by-Step Procedure</h3>
+      <h3>Manual Procedure</h3>
       <ol class="procedure-list">
-        <h4>Manual Procedure</h4>
         <li>Add a sphere (planet): in Blender press <strong>Shift + A → Mesh → UV Sphere</strong>, then press <strong>S</strong> to scale.
           <img src="images/step1.png" alt="Step 1: Add UV Sphere" style="max-width: 100%; margin-top: 10px; border: 1px solid #ddd;">
         </li>
@@ -83,8 +83,8 @@
 
         
       </ol>
+      <h3>Python Scripting Procedure</h3>
       <ol class="procedure-list">
-        <h4>Python Scripting Procedure</h4>
         <li>Open a new script in Blender's Text Editor and write a Python script to create the planet, apply texture, and animate rotation (see provided scripts below).
           <img src="images/script1.png" alt="Script 1: Open Text Editor" style="max-width: 100%; margin-top: 10px; border: 1px solid #ddd;">
         </li>
@@ -93,8 +93,8 @@
         </li>
       </ol>
 
+      <h3>Output and Rendering Procedure</h3>
       <ol class="procedure-list">
-        <h4>Output and Rendering Procedure</h4>
         <li>To output, go on Output on the Properties tab and change file format to Video, and on Encoding section change Matroshka to MPEG-4
           <br>
           <img src="images/output1.png" alt="Output 1: Properties Tab" style="max-width: 100%; margin-top: 10px; border: 1px solid #ddd;">
@@ -103,6 +103,7 @@
         <li>Render the animation: go to Render → Render Animation (or press <strong>Ctrl + F12</strong>) to export your video.
           <img src="images/output3.png" alt="Output 3: Render Animation" style="max-width: 100%; margin-top: 10px; border: 1px solid #ddd;">
         </li>
+      </ol>
     </section>
 
     <section class="section">
@@ -241,7 +242,7 @@
       <p>
         <a class="button" href="blender-mercury-script.txt" download>Download Mercury Script (.txt)</a>
       </p>
-      <h4>Mercury Script</h4>
+      <h3>Mercury Script</h3>
       <pre class="code-block"><code>
 import bpy
 import math
@@ -322,7 +323,7 @@ wlinks.new(wbg.outputs["Background"], wout.inputs["Surface"])
       <p>
         <a class="button" href="blender-venus-script.txt" download>Download Venus Script (.txt)</a>
       </p>
-      <h4>Venus Script</h4>
+      <h3>Venus Script</h3>
       <pre class="code-block"><code>
 import bpy
 import math
@@ -401,7 +402,7 @@ wlinks.new(wbg.outputs["Background"], wout.inputs["Surface"])
       <p>
         <a class="button" href="blender-mars-script.txt" download>Download Mars Script (.txt)</a>
       </p>
-      <h4>Mars Script</h4>
+      <h3>Mars Script</h3>
       <pre class="code-block"><code>
 import bpy
 import math
@@ -480,7 +481,7 @@ wlinks.new(wbg.outputs["Background"], wout.inputs["Surface"])
       <p>
         <a class="button" href="blender-moon-script.txt" download>Download Moon Script (.txt)</a>
       </p>
-      <h4>Moon Script</h4>
+      <h3>Moon Script</h3>
       <pre class="code-block"><code>
 import bpy
 import math
@@ -591,7 +592,7 @@ wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
       <p>
         <a class="button" href="blender-earth-script.txt" download>Download Earth Script (.txt)</a>
       </p>
-      <h4>Earth Script</h4>
+      <h3>Earth Script</h3>
       <pre class="code-block"><code>
 import bpy
 import math
@@ -707,7 +708,7 @@ bpy.ops.object.light_add(type='SUN', location=(5, 5, 5))
       <p>
         <a class="button" href="blender-sun-script.txt" download>Download Sun Script (.txt)</a>
       </p>
-      <h4>Sun Script</h4>
+      <h3>Sun Script</h3>
       <pre class="code-block"><code>
 import bpy
 import math
