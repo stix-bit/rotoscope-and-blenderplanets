@@ -196,7 +196,16 @@
 
         <article class="celestial-card">
           <h3>Jupiter</h3>
-          <p class="desc-slot">Placeholder — details to be added.</p>
+          <div class="video-embed weekly-video">
+            <video autoplay loop muted playsinline preload="metadata">
+              <source src="videos/Jupiter.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="desc-slot">Jupiter is the largest planet in the Solar System and a gas giant composed mainly of hydrogen and helium. It has a strong magnetic field and dozens of moons, including the four large Galilean moons.<br>
+            <strong>Revolution (Rotation):</strong> ~9.9 hours (fastest rotation among all planets)<br>
+            <strong>Orbit Period (Year):</strong> ~11.86 Earth years (~4,333 Earth days)<br>
+            <strong>Distance from Sun:</strong> ~778.5 million km (5.2 AU)</p>
+          </p>
         </article>
 
         <article class="celestial-card">
@@ -235,6 +244,7 @@
         <a class="button" href="images/planets/2k_earth_daymap.jpg" download>Download Earth Texture</a>
         <a class="button" href="images/planets/2k_moon.jpg" download>Download Moon Texture</a>
         <a class="button" href="images/planets/2k_mars.jpg" download>Download Mars Texture</a>
+        <a class="button" href="images/planets/2k_jupiter.jpg" download>Download Jupiter Texture</a>
         <a class="button" href="images/planets/2k_stars_milky_way.jpg" download>Download Space Texture</a>
       </div>
     </section>
@@ -703,6 +713,148 @@ wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
 # LIGHT
 # ============================================
 bpy.ops.object.light_add(type='SUN', location=(5, 5, 5))
+      </code></pre>
+
+      <p>
+        <a class="button" href="blender-jupiter-script.txt" download>Download Jupiter Script (.txt)</a>
+      </p>
+      <h3>Jupiter Script</h3>
+      <pre class="code-block"><code>
+import bpy
+import math
+
+# ============================================
+# TEXTURE PATHS
+# ============================================
+jupiter_texture_path = r"INSERT YOUR JUPITER TEXTURE HERE"
+space_texture_path = r"INSERT YOUR SPACE TEXTURE HERE"
+
+# ============================================
+# CLEAN SCENE
+# ============================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
+
+# ============================================
+# CREATE JUPITER
+# ============================================
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
+jupiter = bpy.context.active_object
+jupiter.name = "Jupiter"
+
+# Scale Jupiter
+jupiter.scale = (4.0, 4.0, 4.0)
+
+bpy.ops.object.shade_smooth()
+
+# ============================================
+# JUPITER MATERIAL
+# ============================================
+mat = bpy.data.materials.new(name="JupiterMaterial")
+mat.use_nodes = True
+
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
+nodes.clear()
+
+output = nodes.new(type='ShaderNodeOutputMaterial')
+bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
+tex = nodes.new(type='ShaderNodeTexImage')
+
+tex.image = bpy.data.images.load(jupiter_texture_path)
+
+links.new(tex.outputs['Color'], bsdf.inputs['Base Color'])
+links.new(bsdf.outputs['BSDF'], output.inputs['Surface'])
+
+jupiter.data.materials.append(mat)
+
+# ============================================
+# CREATE MOONS
+# ============================================
+moons = [
+    ("Io", 0.5, -8),
+    ("Europa", 0.4, -10),
+    ("Ganymede", 0.8, -12),
+    ("Callisto", 0.7, -15),
+]
+
+moon_objects = []
+
+for name, scale, y_pos in moons:
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, y_pos, 0))
+    moon = bpy.context.active_object
+    moon.name = name
+
+    # Scale moon
+    moon.scale = (scale, scale, scale)
+
+    bpy.ops.object.shade_smooth()
+
+    # Simple material (no texture)
+    m_mat = bpy.data.materials.new(name=f"{name}_Material")
+    m_mat.use_nodes = True
+    moon.data.materials.append(m_mat)
+
+    moon_objects.append(moon)
+
+# ============================================
+# ANIMATION SETTINGS
+# ============================================
+scene = bpy.context.scene
+scene.frame_start = 1
+scene.frame_end = 300  # Jupiter rotation cycle
+
+# ============================================
+# JUPITER ROTATION (LINEAR + LOOP)
+# ============================================
+jupiter.rotation_euler = (0, 0, 0)
+jupiter.keyframe_insert(data_path="rotation_euler", frame=1)
+
+jupiter.rotation_euler = (0, 0, math.radians(360))
+jupiter.keyframe_insert(data_path="rotation_euler", frame=300)
+
+# Ensure animation data
+if jupiter.animation_data is None:
+    jupiter.animation_data_create()
+
+action = jupiter.animation_data.action
+
+if action:
+    fcurve = action.fcurves.find("rotation_euler", index=2)
+
+    if fcurve:
+        for kp in fcurve.keyframe_points:
+            kp.interpolation = 'LINEAR'
+
+        fcurve.modifiers.new(type='CYCLES')
+
+# ============================================
+# LIGHT
+# ============================================
+bpy.ops.object.light_add(type='SUN', location=(10, 10, 10))
+
+# ============================================
+# WORLD (SPACE BACKGROUND)
+# ============================================
+world = bpy.context.scene.world
+if world is None:
+    world = bpy.data.worlds.new("World")
+    bpy.context.scene.world = world
+
+world.use_nodes = True
+
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
+wnodes.clear()
+
+w_output = wnodes.new(type='ShaderNodeOutputWorld')
+w_bg = wnodes.new(type='ShaderNodeBackground')
+w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
+
+w_tex.image = bpy.data.images.load(space_texture_path)
+
+wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
       </code></pre>
 
       <p>
