@@ -113,6 +113,55 @@
         <div id="planet-age-result" class="planet-age-result" aria-live="polite">
           <p class="planet-age-empty">Your results will appear here after you calculate.</p>
         </div>
+
+        <script>
+        (function () {
+          var form = document.getElementById('planet-age-form');
+          var input = document.getElementById('earth-age');
+          var result = document.getElementById('planet-age-result');
+
+          if (!form || !input || !result) {
+            return;
+          }
+
+          var planets = [
+            { name: 'Mercury', yearLength: 0.2408467 },
+            { name: 'Venus', yearLength: 0.61519726 },
+            { name: 'Mars', yearLength: 1.8808158 },
+            { name: 'Jupiter', yearLength: 11.862615 },
+            { name: 'Saturn', yearLength: 29.447498 },
+            { name: 'Uranus', yearLength: 84.016846 },
+            { name: 'Neptune', yearLength: 164.79132 },
+            { name: 'Pluto', yearLength: 248.0 }
+          ];
+
+          function formatAge(value) {
+            return value.toFixed(value < 10 ? 2 : 1);
+          }
+
+          function renderResults(earthAge) {
+            var cards = planets.map(function (planet) {
+              var planetAge = earthAge / planet.yearLength;
+              return '<article class="planet-age-card"><h3>' + planet.name + '</h3><p>' + formatAge(planetAge) + ' ' + planet.name + ' years</p></article>';
+            }).join('');
+
+            result.innerHTML = '<div class="planet-age-summary"><strong>' + formatAge(earthAge) + ' Earth years</strong></div><div class="planet-age-grid">' + cards + '</div>';
+          }
+
+          form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var earthAge = parseFloat(input.value);
+
+            if (Number.isNaN(earthAge) || earthAge < 0) {
+              result.innerHTML = '<p class="planet-age-error">Please enter a valid age of 0 or more.</p>';
+              return;
+            }
+
+            renderResults(earthAge);
+          });
+        })();
+      </script>
     </section>
 
     <section class="section">
@@ -375,55 +424,6 @@ if action:
         index=2
     )
 
-
-      <script>
-        (function () {
-          var form = document.getElementById('planet-age-form');
-          var input = document.getElementById('earth-age');
-          var result = document.getElementById('planet-age-result');
-
-          if (!form || !input || !result) {
-            return;
-          }
-
-          var planets = [
-            { name: 'Mercury', yearLength: 0.2408467 },
-            { name: 'Venus', yearLength: 0.61519726 },
-            { name: 'Mars', yearLength: 1.8808158 },
-            { name: 'Jupiter', yearLength: 11.862615 },
-            { name: 'Saturn', yearLength: 29.447498 },
-            { name: 'Uranus', yearLength: 84.016846 },
-            { name: 'Neptune', yearLength: 164.79132 },
-            { name: 'Pluto', yearLength: 248.0 }
-          ];
-
-          function formatAge(value) {
-            return value.toFixed(value < 10 ? 2 : 1);
-          }
-
-          function renderResults(earthAge) {
-            var cards = planets.map(function (planet) {
-              var planetAge = earthAge / planet.yearLength;
-              return '<article class="planet-age-card"><h3>' + planet.name + '</h3><p>' + formatAge(planetAge) + ' ' + planet.name + ' years</p></article>';
-            }).join('');
-
-            result.innerHTML = '<div class="planet-age-summary"><strong>' + formatAge(earthAge) + ' Earth years</strong></div><div class="planet-age-grid">' + cards + '</div>';
-          }
-
-          form.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            var earthAge = parseFloat(input.value);
-
-            if (Number.isNaN(earthAge) || earthAge < 0) {
-              result.innerHTML = '<p class="planet-age-error">Please enter a valid age of 0 or more.</p>';
-              return;
-            }
-
-            renderResults(earthAge);
-          });
-        })();
-      </script>
     for kp in fcurve.keyframe_points:
         kp.interpolation = 'LINEAR'
 
