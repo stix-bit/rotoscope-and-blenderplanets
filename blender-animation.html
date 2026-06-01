@@ -342,6 +342,269 @@
     </section>
 
     <p>
+      <a class="button" href="blender-solarsystem-script.txt" download>Download Solar System Script (.txt)</a>
+      <h3>Solar System Script</h3>
+      <pre class="code-block">
+        <code>
+          import bpy
+import math
+
+# =========================================================
+# TEXTURES
+# =========================================================
+T = {
+    "sun": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_sun.jpg",
+    "mercury": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_mercury.jpg",
+    "venus": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_venus_surface.jpg",
+    "earth": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_earth_daymap.jpg",
+    "mars": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_mars.jpg",
+    "jupiter": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_jupiter.jpg",
+    "saturn": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_saturn.jpg",
+    "uranus": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_uranus.jpg",
+    "neptune": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_neptune.jpg",
+    "pluto": r"C:\Users\johns\OneDrive\Documents\blender planet textures\plutomap1k.jpg",
+    "moon": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_moon.jpg",
+    "rings": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_saturn_ring_alpha.png",
+    "space": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_stars_milky_way.jpg"
+}
+
+# =========================================================
+# CLEAN SCENE
+# =========================================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
+
+# =========================================================
+# MATERIALS
+# =========================================================
+def mat_tex(name, path, emission=False, alpha=False):
+
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+
+    tex = nodes.new("ShaderNodeTexImage")
+    tex.image = bpy.data.images.load(path)
+    tex.image.colorspace_settings.name = 'sRGB'
+
+    output = nodes.new("ShaderNodeOutputMaterial")
+
+    if emission:
+        em = nodes.new("ShaderNodeEmission")
+        em.inputs["Strength"].default_value = 20
+        links.new(tex.outputs["Color"], em.inputs["Color"])
+        links.new(em.outputs["Emission"], output.inputs["Surface"])
+    else:
+        bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+        bsdf.inputs["Roughness"].default_value = 1.0
+
+        links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+
+        if alpha:
+            links.new(tex.outputs["Alpha"], bsdf.inputs["Alpha"])
+            mat.surface_render_method = 'DITHERED'
+
+        links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+
+    return mat
+
+# =========================================================
+# ROOT SYSTEM (IMPORTANT)
+# =========================================================
+bpy.ops.object.empty_add(type='PLAIN_AXES')
+root = bpy.context.object
+root.name = "Solar_System_Root"
+
+# =========================================================
+# PLANETS + ORBIT EMPTY
+# =========================================================
+def planet(name, size, dist, tex):
+
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=size, location=(dist, 0, 0))
+    obj = bpy.context.object
+    obj.name = name
+    obj.data.materials.append(mat_tex(name, tex))
+    obj.parent = root
+
+    bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 0))
+    orbit = bpy.context.object
+    orbit.name = name + "_Orbit"
+    orbit.parent = root
+
+    obj.parent = orbit
+
+    return obj, orbit
+
+# =========================================================
+# SPACE BACKGROUND
+# =========================================================
+world = bpy.context.scene.world
+world.use_nodes = True
+
+nodes = world.node_tree.nodes
+links = world.node_tree.links
+nodes.clear()
+
+bg = nodes.new("ShaderNodeBackground")
+env = nodes.new("ShaderNodeTexEnvironment")
+out = nodes.new("ShaderNodeOutputWorld")
+
+env.image = bpy.data.images.load(T["space"])
+bg.inputs["Strength"].default_value = 1.5
+
+links.new(env.outputs["Color"], bg.inputs["Color"])
+links.new(bg.outputs["Background"], out.inputs["Surface"])
+
+# =========================================================
+# SUN
+# =========================================================
+sun, _ = planet("Sun", 5, 0, T["sun"])
+sun.data.materials[0] = mat_tex("sun", T["sun"], emission=True)
+
+bpy.ops.object.light_add(type='SUN')
+light = bpy.context.object
+light.data.energy = 3
+light.parent = root
+
+# =========================================================
+# PLANETS (SAFE DISTANCES)
+# =========================================================
+data = [
+    ("Mercury", 0.6, 9),
+    ("Venus",   0.8, 11),
+    ("Earth",   1.0, 13),
+    ("Mars",    1.4, 16),
+
+    ("Jupiter", 2.0, 20),
+    ("Saturn",  1.8, 26),
+    ("Uranus",  1.6, 32),
+    ("Neptune", 1.6, 36),
+    ("Pluto",   0.6, 40),
+]
+
+planets = {}
+
+for n, size, dist in data:
+    obj, orb = planet(n, size, dist, T[n.lower()])
+    planets[n] = (obj, orb)
+
+# =========================================================
+# EARTH-MOON FIXED (CLEAN HIERARCHY)
+# =========================================================
+
+earth = planets["Earth"][0]
+earth_orbit = planets["Earth"][1]
+
+# -------------------------
+# CREATE MOON ORBIT (IMPORTANT)
+# -------------------------
+bpy.ops.object.empty_add(type='PLAIN_AXES')
+moon_orbit = bpy.context.object
+moon_orbit.name = "Moon_Orbit"
+
+# CRITICAL FIX:
+# attach to EARTH (not Sun, not root)
+moon_orbit.parent = earth
+moon_orbit.location = (0, 0, 0)
+
+# -------------------------
+# CREATE MOON
+# -------------------------
+bpy.ops.mesh.primitive_uv_sphere_add(radius=0.40)
+moon = bpy.context.object
+moon.name = "Moon"
+moon.data.materials.append(mat_tex("moon", T["moon"]))
+
+moon.parent = moon_orbit
+moon.location = (1.5, 0, 0)
+
+# =========================================================
+# MOON ORBIT ANIMATION
+# =========================================================
+
+moon_orbit.rotation_euler = (0, 0, 0)
+moon_orbit.keyframe_insert(data_path="rotation_euler", frame=1)
+
+moon_orbit.rotation_euler = (0, 0, math.radians(360 * 20))
+moon_orbit.keyframe_insert(data_path="rotation_euler", frame=4320)
+
+# =========================================================
+# SATURN RINGS
+# =========================================================
+saturn = planets["Saturn"][0]
+
+bpy.ops.object.empty_add(type='PLAIN_AXES')
+ring_anchor = bpy.context.object
+ring_anchor.name = "Saturn_Ring_Anchor"
+ring_anchor.parent = saturn
+
+bpy.ops.mesh.primitive_torus_add(major_radius=2.2, minor_radius=0.05)
+rings = bpy.context.object
+rings.data.materials.append(mat_tex("rings", T["rings"], alpha=True))
+rings.parent = ring_anchor
+rings.rotation_euler = (math.radians(116.7), 0, 0)
+rings.scale = (1.5, 1.5, 1.5)
+
+# =========================================================
+# ANIMATION SETTINGS
+# =========================================================
+frame_end = 950
+bpy.context.scene.frame_end = frame_end
+
+# =========================================================
+# CONTINUOUS ORBIT (NO STOPPING / NO FLATTENING)
+# =========================================================
+
+frame_end = 950
+bpy.context.scene.frame_end = frame_end
+
+orbit_frames = {
+    "Mercury": 300,
+    "Venus":   350,
+    "Earth":   400,
+    "Mars":    450,
+    "Jupiter": 550,
+    "Saturn":  650,
+    "Uranus":  750,
+    "Neptune": 850,
+    "Pluto":   950
+}
+
+for name, (obj, orbit) in planets.items():
+
+    orbit.rotation_euler = (0, 0, 0)
+    orbit.keyframe_insert(data_path="rotation_euler", frame=1)
+
+    end = orbit_frames.get(name, 800)
+
+    # smooth continuous orbit
+    orbit.rotation_euler = (0, 0, math.radians(360))
+    orbit.keyframe_insert(data_path="rotation_euler", frame=end)
+
+    # extend motion beyond last keyframe so it keeps moving
+    orbit.rotation_euler = (0, 0, math.radians(720))
+    orbit.keyframe_insert(data_path="rotation_euler", frame=frame_end)
+
+# =========================================================
+# CAMERA
+# =========================================================
+bpy.ops.object.camera_add(location=(0, -70, 25))
+cam = bpy.context.object
+cam.rotation_euler = (math.radians(70), 0, 0)
+
+bpy.context.scene.camera = cam
+bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+bpy.context.scene.render.fps = 30
+
+print("Continuous Orbit System Enabled (No Stop at End)")
+        </code>
+      </pre>
+    </p>
+
+    <p>
         <a class="button" href="blender-sun-script.txt" download>Download Sun Script (.txt)</a>
       </p>
       <h3>Sun Script</h3>
