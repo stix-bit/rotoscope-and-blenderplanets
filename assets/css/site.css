@@ -242,6 +242,81 @@ main {
   margin-top: 0.65rem;
 }
 
+.planet-age-form {
+  margin-top: 1rem;
+}
+
+.planet-age-form label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-weight: 600;
+}
+
+.planet-age-input-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.planet-age-input-row input {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #0b0f29;
+  color: var(--text);
+}
+
+.planet-age-input-row input::placeholder {
+  color: #7f86b8;
+}
+
+.planet-age-result {
+  margin-top: 1rem;
+}
+
+.planet-age-empty,
+.planet-age-error {
+  margin: 0;
+  color: var(--muted);
+}
+
+.planet-age-error {
+  color: #ffb5b5;
+}
+
+.planet-age-summary {
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0b0f29;
+}
+
+.planet-age-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.planet-age-card {
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #151a42;
+}
+
+.planet-age-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.98rem;
+}
+
+.planet-age-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
 /* Step images: show full image scaled down without cropping */
 .step-image {
   width: 160px;

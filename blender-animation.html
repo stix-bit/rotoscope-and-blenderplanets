@@ -35,15 +35,9 @@
 
      <h3>Final Animation:</h3>
       <div class="video-embed">
-        <!-- <iframe
-          src="https://www.youtube.com/embed/your-animation-link"
-          title="Blender Animation"
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allowfullscreen
-        ></iframe> -->
-        * Placeholder for final animation video. Will be added when the Solar System has been modeled and animated.
+          <video autoplay loop muted playsinline preload="metadata">
+            <source src="videos/SolarSystem.mp4" type="video/mp4">
+          </video>
       </div>
 
     <section class="section">
@@ -108,9 +102,17 @@
 
     <section class="section">
       <h2>Planet Age Calculator</h2>
-      <ul>
-        <li>Will be added when all celestial bodies have been modeled</li>
-      </ul>
+        <p>Enter your age in Earth years and see how old you would be on other planets.</p>
+        <form id="planet-age-form" class="planet-age-form">
+          <label for="earth-age">Your age in Earth years</label>
+          <div class="planet-age-input-row">
+            <input id="earth-age" name="earthAge" type="number" min="0" step="0.1" placeholder="Example: 21" required>
+            <button class="button" type="submit">Calculate</button>
+          </div>
+        </form>
+        <div id="planet-age-result" class="planet-age-result" aria-live="polite">
+          <p class="planet-age-empty">Your results will appear here after you calculate.</p>
+        </div>
     </section>
 
     <section class="section">
@@ -210,22 +212,58 @@
 
         <article class="celestial-card">
           <h3>Saturn</h3>
-          <p class="desc-slot">Placeholder — details to be added.</p>
+          <div class="video-embed weekly-video">
+            <video autoplay loop muted playsinline preload="metadata">
+              <source src="videos/Saturn.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="desc-slot">Saturn is the second-largest planet in the Solar System and is famous for its spectacular ring system made of ice, rock, and dust. It is a gas giant composed mainly of hydrogen and helium and has numerous moons, including Titan.<br>  
+            <strong>Revolution (Rotation):</strong> ~10.7 hours<br>
+            <strong>Orbit Period (Year):</strong> ~29.5 Earth years (~10,759 Earth days)<br>
+            <strong>Distance from Sun:</strong> ~1.43 billion km (9.5 AU)
+          </p>
         </article>
 
         <article class="celestial-card">
           <h3>Uranus</h3>
-          <p class="desc-slot">Placeholder — details to be added.</p>
+          <div class="video-embed weekly-video">
+            <video autoplay loop muted playsinline preload="metadata">
+              <source src="videos/Uranus.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="desc-slot">Uranus is an ice giant planet that is the seventh planet from the Sun. It has a unique sideways rotation and a faint ring system.<br>
+            <strong>Revolution (Rotation):</strong> ~17.2 hours<br>
+            <strong>Orbit Period (Year):</strong> ~84.0 Earth years (~30,687 Earth days)<br>
+            <strong>Distance from Sun:</strong> ~2.87 billion km (19.2 AU)
+          </p>
         </article>
 
         <article class="celestial-card">
           <h3>Neptune</h3>
-          <p class="desc-slot">Placeholder — details to be added.</p>
+          <div class="video-embed weekly-video">
+            <video autoplay loop muted playsinline preload="metadata">
+              <source src="videos/Neptune.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="desc-slot">Neptune is the eighth and farthest-known Solar planet from the Sun. It is the fourth-largest planet by diameter and the third-most-massive. It has a deep blue color due to the presence of methane in its atmosphere.<br>
+            <strong>Revolution (Rotation):</strong> ~16.1 hours<br>
+            <strong>Orbit Period (Year):</strong> ~164.8 Earth years (~60,190 Earth days)<br>
+            <strong>Distance from Sun:</strong> ~4.5 billion km (30.1 AU)
+          </p>
         </article>
 
         <article class="celestial-card">
           <h3>Pluto</h3>
-          <p class="desc-slot">Placeholder — details to be added.</p>
+          <div class="video-embed weekly-video">
+            <video autoplay loop muted playsinline preload="metadata">
+              <source src="videos/Pluto.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p class="desc-slot">Pluto is a dwarf planet located in the outer regions of our solar system. It has a highly elliptical and tilted orbit, and is known for its large moon Charon.<br>
+            <strong>Revolution (Rotation):</strong> ~6.4 Earth days<br>
+            <strong>Orbit Period (Year):</strong> ~248 Earth years (~90,530 Earth days)<br>
+            <strong>Distance from Sun:</strong> ~5.9 billion km (39.5 AU)
+          </p>
         </article>
       </div>
     </section>
@@ -245,9 +283,179 @@
         <a class="button" href="images/planets/2k_moon.jpg" download>Download Moon Texture</a>
         <a class="button" href="images/planets/2k_mars.jpg" download>Download Mars Texture</a>
         <a class="button" href="images/planets/2k_jupiter.jpg" download>Download Jupiter Texture</a>
+        <a class="button" href="images/planets/2k_saturn.jpg" download>Download Saturn Texture</a>
+        <a class="button" href="images/planets/2k_saturn_ring_alpha.png" download>Download Saturn Ring Texture</a>
+        <a class="button" href="images/planets/2k_uranus.jpg" download>Download Uranus Texture</a>
+        <a class="button" href="images/planets/2k_neptune.jpg" download>Download Neptune Texture</a>
+        <a class="button" href="images/planets/2k_pluto.jpg" download>Download Pluto Texture</a>
         <a class="button" href="images/planets/2k_stars_milky_way.jpg" download>Download Space Texture</a>
       </div>
     </section>
+
+    <p>
+        <a class="button" href="blender-sun-script.txt" download>Download Sun Script (.txt)</a>
+      </p>
+      <h3>Sun Script</h3>
+      <pre class="code-block"><code>
+import bpy
+import math
+
+# ============================================
+# TEXTURE PATHS
+# ============================================
+sun_texture_path = r"INSERT YOUR PATH HERE"
+space_texture_path = r"INSERT YOUR PATH HERE"
+
+# ============================================
+# CLEAN SCENE
+# ============================================
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete(use_global=False)
+
+# ============================================
+# CREATE SUN
+# ============================================
+bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
+sun = bpy.context.active_object
+sun.name = "Sun"
+
+sun.scale = (2, 2, 2)
+bpy.ops.object.shade_smooth()
+
+# ============================================
+# SUN MATERIAL (EMISSION + TEXTURE)
+# ============================================
+mat = bpy.data.materials.new(name="SunMaterial")
+mat.use_nodes = True
+
+nodes = mat.node_tree.nodes
+links = mat.node_tree.links
+nodes.clear()
+
+output = nodes.new(type='ShaderNodeOutputMaterial')
+emission = nodes.new(type='ShaderNodeEmission')
+tex = nodes.new(type='ShaderNodeTexImage')
+
+try:
+    tex.image = bpy.data.images.load(sun_texture_path)
+    links.new(tex.outputs['Color'], emission.inputs['Color'])
+except:
+    pass
+
+emission.inputs['Strength'].default_value = 10
+
+links.new(emission.outputs['Emission'], output.inputs['Surface'])
+
+sun.data.materials.append(mat)
+
+# ============================================
+# ANIMATION (500 FRAMES)
+# ============================================
+bpy.context.scene.frame_start = 1
+bpy.context.scene.frame_end = 500
+
+sun.rotation_euler = (0, 0, 0)
+sun.keyframe_insert("rotation_euler", frame=1)
+
+sun.rotation_euler = (0, 0, math.radians(360))
+sun.keyframe_insert("rotation_euler", frame=500)
+
+# ============================================
+# BLENDER 5+ SAFE FCURVE SYSTEM
+# ============================================
+if sun.animation_data is None:
+    sun.animation_data_create()
+
+action = sun.animation_data.action
+
+if action:
+    fcurve = action.fcurve_ensure_for_datablock(
+        datablock=sun,
+        data_path="rotation_euler",
+        index=2
+    )
+
+
+      <script>
+        (function () {
+          var form = document.getElementById('planet-age-form');
+          var input = document.getElementById('earth-age');
+          var result = document.getElementById('planet-age-result');
+
+          if (!form || !input || !result) {
+            return;
+          }
+
+          var planets = [
+            { name: 'Mercury', yearLength: 0.2408467 },
+            { name: 'Venus', yearLength: 0.61519726 },
+            { name: 'Mars', yearLength: 1.8808158 },
+            { name: 'Jupiter', yearLength: 11.862615 },
+            { name: 'Saturn', yearLength: 29.447498 },
+            { name: 'Uranus', yearLength: 84.016846 },
+            { name: 'Neptune', yearLength: 164.79132 },
+            { name: 'Pluto', yearLength: 248.0 }
+          ];
+
+          function formatAge(value) {
+            return value.toFixed(value < 10 ? 2 : 1);
+          }
+
+          function renderResults(earthAge) {
+            var cards = planets.map(function (planet) {
+              var planetAge = earthAge / planet.yearLength;
+              return '<article class="planet-age-card"><h3>' + planet.name + '</h3><p>' + formatAge(planetAge) + ' ' + planet.name + ' years</p></article>';
+            }).join('');
+
+            result.innerHTML = '<div class="planet-age-summary"><strong>' + formatAge(earthAge) + ' Earth years</strong></div><div class="planet-age-grid">' + cards + '</div>';
+          }
+
+          form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var earthAge = parseFloat(input.value);
+
+            if (Number.isNaN(earthAge) || earthAge < 0) {
+              result.innerHTML = '<p class="planet-age-error">Please enter a valid age of 0 or more.</p>';
+              return;
+            }
+
+            renderResults(earthAge);
+          });
+        })();
+      </script>
+    for kp in fcurve.keyframe_points:
+        kp.interpolation = 'LINEAR'
+
+    fcurve.modifiers.new(type='CYCLES')
+
+# ============================================
+# WORLD BACKGROUND (SAFE)
+# ============================================
+world = bpy.context.scene.world
+
+if world is None:
+    world = bpy.data.worlds.new("World")
+    bpy.context.scene.world = world
+
+world.use_nodes = True
+
+wnodes = world.node_tree.nodes
+wlinks = world.node_tree.links
+wnodes.clear()
+
+w_output = wnodes.new(type='ShaderNodeOutputWorld')
+w_bg = wnodes.new(type='ShaderNodeBackground')
+w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
+
+try:
+    w_tex.image = bpy.data.images.load(space_texture_path)
+    wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
+except:
+    pass
+
+wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
+      </code></pre> 
 
       <p>
         <a class="button" href="blender-mercury-script.txt" download>Download Mercury Script (.txt)</a>
@@ -857,121 +1065,7 @@ wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
 wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
       </code></pre>
 
-      <p>
-        <a class="button" href="blender-sun-script.txt" download>Download Sun Script (.txt)</a>
-      </p>
-      <h3>Sun Script</h3>
-      <pre class="code-block"><code>
-import bpy
-import math
-
-# ============================================
-# TEXTURE PATHS
-# ============================================
-sun_texture_path = r"INSERT YOUR PATH HERE"
-space_texture_path = r"INSERT YOUR PATH HERE"
-
-# ============================================
-# CLEAN SCENE
-# ============================================
-bpy.ops.object.select_all(action='SELECT')
-bpy.ops.object.delete(use_global=False)
-
-# ============================================
-# CREATE SUN
-# ============================================
-bpy.ops.mesh.primitive_uv_sphere_add(radius=1, location=(0, 0, 0))
-sun = bpy.context.active_object
-sun.name = "Sun"
-
-sun.scale = (2, 2, 2)
-bpy.ops.object.shade_smooth()
-
-# ============================================
-# SUN MATERIAL (EMISSION + TEXTURE)
-# ============================================
-mat = bpy.data.materials.new(name="SunMaterial")
-mat.use_nodes = True
-
-nodes = mat.node_tree.nodes
-links = mat.node_tree.links
-nodes.clear()
-
-output = nodes.new(type='ShaderNodeOutputMaterial')
-emission = nodes.new(type='ShaderNodeEmission')
-tex = nodes.new(type='ShaderNodeTexImage')
-
-try:
-    tex.image = bpy.data.images.load(sun_texture_path)
-    links.new(tex.outputs['Color'], emission.inputs['Color'])
-except:
-    pass
-
-emission.inputs['Strength'].default_value = 10
-
-links.new(emission.outputs['Emission'], output.inputs['Surface'])
-
-sun.data.materials.append(mat)
-
-# ============================================
-# ANIMATION (500 FRAMES)
-# ============================================
-bpy.context.scene.frame_start = 1
-bpy.context.scene.frame_end = 500
-
-sun.rotation_euler = (0, 0, 0)
-sun.keyframe_insert("rotation_euler", frame=1)
-
-sun.rotation_euler = (0, 0, math.radians(360))
-sun.keyframe_insert("rotation_euler", frame=500)
-
-# ============================================
-# BLENDER 5+ SAFE FCURVE SYSTEM
-# ============================================
-if sun.animation_data is None:
-    sun.animation_data_create()
-
-action = sun.animation_data.action
-
-if action:
-    fcurve = action.fcurve_ensure_for_datablock(
-        datablock=sun,
-        data_path="rotation_euler",
-        index=2
-    )
-
-    for kp in fcurve.keyframe_points:
-        kp.interpolation = 'LINEAR'
-
-    fcurve.modifiers.new(type='CYCLES')
-
-# ============================================
-# WORLD BACKGROUND (SAFE)
-# ============================================
-world = bpy.context.scene.world
-
-if world is None:
-    world = bpy.data.worlds.new("World")
-    bpy.context.scene.world = world
-
-world.use_nodes = True
-
-wnodes = world.node_tree.nodes
-wlinks = world.node_tree.links
-wnodes.clear()
-
-w_output = wnodes.new(type='ShaderNodeOutputWorld')
-w_bg = wnodes.new(type='ShaderNodeBackground')
-w_tex = wnodes.new(type='ShaderNodeTexEnvironment')
-
-try:
-    w_tex.image = bpy.data.images.load(space_texture_path)
-    wlinks.new(w_tex.outputs['Color'], w_bg.inputs['Color'])
-except:
-    pass
-
-wlinks.new(w_bg.outputs['Background'], w_output.inputs['Surface'])
-      </code></pre>
+      
 
     </section>
 
