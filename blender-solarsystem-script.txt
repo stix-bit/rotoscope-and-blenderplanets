@@ -5,19 +5,19 @@ import math
 # TEXTURES
 # =========================================================
 T = {
-    "sun": r"INSERT PATH HERE",
-    "mercury": r"INSERT PATH HERE",
-    "venus": r"INSERT PATH HERE",
-    "earth": r"INSERT PATH HERE",
-    "mars": r"INSERT PATH HERE",
-    "jupiter": r"INSERT PATH HERE",
-    "saturn": r"INSERT PATH HERE",
-    "uranus": r"INSERT PATH HERE",
-    "neptune": r"INSERT PATH HERE",
-    "pluto": r"INSERT PATH HERE",
-    "moon": r"INSERT PATH HERE",
-    "rings": r"INSERT PATH HERE",
-    "space": r"INSERT PATH HERE"
+    "sun": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_sun.jpg",
+    "mercury": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_mercury.jpg",
+    "venus": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_venus_surface.jpg",
+    "earth": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_earth_daymap.jpg",
+    "mars": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_mars.jpg",
+    "jupiter": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_jupiter.jpg",
+    "saturn": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_saturn.jpg",
+    "uranus": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_uranus.jpg",
+    "neptune": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_neptune.jpg",
+    "pluto": r"C:\Users\johns\OneDrive\Documents\blender planet textures\plutomap1k.jpg",
+    "moon": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_moon.jpg",
+    "rings": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_saturn_ring_alpha.png",
+    "space": r"C:\Users\johns\OneDrive\Documents\blender planet textures\2k_stars_milky_way.jpg"
 }
 
 # =========================================================
@@ -241,14 +241,521 @@ for name, (obj, orbit) in planets.items():
     orbit.keyframe_insert(data_path="rotation_euler", frame=frame_end)
 
 # =========================================================
+# ORBIT PATH RINGS (VISUAL GUIDES)
+# =========================================================
+# Draws a thin circle at each planet's orbital radius so the
+# orbit paths are visible in the viewport. These are guides
+# only: shown in the viewport, hidden from the final render,
+# and not selectable by default so they don't get in the way.
+
+orbit_ring_color = {
+    "Mercury": (1.0, 1.0, 1.0, 1),
+    "Venus":   (1.0, 1.0, 1.0, 1),
+    "Earth":   (1.0, 1.0, 1.0, 1),
+    "Mars":    (1.0, 1.0, 1.0, 1),
+    "Jupiter": (1.0, 1.0, 1.0, 1),
+    "Saturn":  (1.0, 1.0, 1.0, 1),
+    "Uranus":  (1.0, 1.0, 1.0, 1),
+    "Neptune": (1.0, 1.0, 1.0, 1),
+    "Pluto":   (1.0, 1.0, 1.0, 1),
+}
+
+# -------------------------------------------------------
+# Clean up any orbit ring objects/curves left over from a
+# previous run of this script (prevents old corkscrewed or
+# stale rings from stacking on top of freshly generated ones)
+# -------------------------------------------------------
+for obj in list(bpy.data.objects):
+    if obj.name == "Orbit_Path_Rings" or obj.name.endswith("_RingPath"):
+        bpy.data.objects.remove(obj, do_unlink=True)
+
+for curve in list(bpy.data.curves):
+    if curve.name.endswith("_RingCurve") or "_RingCurve." in curve.name:
+        bpy.data.curves.remove(curve)
+
+for mat in list(bpy.data.materials):
+    if mat.name.endswith("_RingPathMaterial") or "_RingPathMaterial." in mat.name:
+        bpy.data.materials.remove(mat)
+
+bpy.ops.object.empty_add(type='PLAIN_AXES')
+orbit_rings_group = bpy.context.object
+orbit_rings_group.name = "Orbit_Path_Rings"
+orbit_rings_group.parent = root
+
+def make_orbit_ring(name, dist, color, segments=128):
+    curve_data = bpy.data.curves.new(name + "_RingCurve", type='CURVE')
+    curve_data.dimensions = '3D'
+    curve_data.resolution_u = 12
+    curve_data.bevel_depth = 0.025
+    curve_data.fill_mode = 'FULL'
+
+    spline = curve_data.splines.new('POLY')
+    spline.points.add(segments - 1)
+
+    for i in range(segments):
+        angle = 2 * math.pi * i / segments
+        x = dist * math.cos(angle)
+        y = dist * math.sin(angle)
+        spline.points[i].co = (x, y, 0, 1)
+
+    spline.use_cyclic_u = True
+
+    ring_obj = bpy.data.objects.new(name + "_RingPath", curve_data)
+    bpy.context.collection.objects.link(ring_obj)
+
+    ring_mat = bpy.data.materials.new(name + "_RingPathMaterial")
+    ring_mat.use_nodes = True
+    rn = ring_mat.node_tree.nodes
+    rl = ring_mat.node_tree.links
+    rn.clear()
+    emission = rn.new("ShaderNodeEmission")
+    output = rn.new("ShaderNodeOutputMaterial")
+    emission.inputs["Color"].default_value = color
+    emission.inputs["Strength"].default_value = 1.0
+    rl.new(emission.outputs["Emission"], output.inputs["Surface"])
+
+    # Also set the material's viewport display color so the ring shows
+    # bright yellow even under plain Solid shading, which ignores node
+    # materials entirely and only reads diffuse_color.
+    ring_mat.diffuse_color = color
+
+    ring_obj.data.materials.append(ring_mat)
+
+    ring_obj.parent = orbit_rings_group
+
+    # Visible in both viewport and final render
+    ring_obj.hide_render = False
+    ring_obj.hide_select = True
+    ring_obj.color = color
+    ring_obj.display_type = 'SOLID'
+    ring_obj.show_wire = True
+    ring_obj.show_in_front = True
+
+    return ring_obj
+
+for n, size, dist in data:
+    make_orbit_ring(n, dist, orbit_ring_color[n])
+
+# Moon's orbit ring around Earth (small, drawn relative to Earth)
+moon_ring = make_orbit_ring("Moon", 1.5, (1.0, 1.0, 1.0, 1))
+moon_ring.parent = earth
+moon_ring.location = (0, 0, 0)
+
+# =========================================================
+# METEOR SHOWER WITH TRAILS (BLENDER 5.1 FRIENDLY)
+# =========================================================
+
+# =========================================================
+# METEOR SHOWER WITH GLOWING PLASMA TRAILS
+# =========================================================
+
+import random
+random.seed(7)
+
+# -------------------------
+# METEOR MATERIAL (DIM ROCK)
+# -------------------------
+meteor_mat = bpy.data.materials.new("MeteorMaterial")
+meteor_mat.use_nodes = True
+
+m_bsdf = meteor_mat.node_tree.nodes["Principled BSDF"]
+m_bsdf.inputs["Base Color"].default_value = (0.25, 0.22, 0.2, 1)
+m_bsdf.inputs["Roughness"].default_value = 1.0
+
+# -------------------------
+# PLASMA TRAIL MATERIAL (EMISSION)
+# -------------------------
+trail_mat = bpy.data.materials.new("PlasmaTrailMaterial")
+trail_mat.use_nodes = True
+
+tnodes = trail_mat.node_tree.nodes
+tlinks = trail_mat.node_tree.links
+tnodes.clear()
+
+t_emission = tnodes.new("ShaderNodeEmission")
+t_output = tnodes.new("ShaderNodeOutputMaterial")
+
+# Bright blue-white plasma look
+t_emission.inputs["Color"].default_value = (0.4, 0.8, 1.0, 1.0)
+t_emission.inputs["Strength"].default_value = 25
+
+tlinks.new(t_emission.outputs["Emission"], t_output.inputs["Surface"])
+trail_mat.blend_method = 'BLEND'
+
+# -------------------------
+# CLEAN UP ANY PREVIOUS METEOR OBJECTS (re-run safety)
+# -------------------------
+for obj in list(bpy.data.objects):
+    if obj.name == "Meteor_Shower" or obj.name.startswith("Meteor_"):
+        bpy.data.objects.remove(obj, do_unlink=True)
+
+bpy.ops.object.empty_add(type='PLAIN_AXES')
+meteor_group = bpy.context.object
+meteor_group.name = "Meteor_Shower"
+meteor_group.parent = root
+
+# -------------------------
+# BUILD ONE METEOR (ROCK + TRAIL)
+# -------------------------
+def make_meteor(index, start, end, frame_in, frame_out):
+
+    bpy.ops.mesh.primitive_ico_sphere_add(
+        radius=random.uniform(0.08, 0.22),
+        subdivisions=1,
+        location=start
+    )
+    rock = bpy.context.object
+    rock.name = f"Meteor_{index:02d}_Rock"
+    rock.data.materials.append(meteor_mat)
+    rock.parent = meteor_group
+
+    # Random lumpy look: nudge each vertex slightly
+    for v in rock.data.vertices:
+        jitter = random.uniform(0.85, 1.15)
+        v.co.x *= jitter
+        v.co.y *= random.uniform(0.85, 1.15)
+        v.co.z *= random.uniform(0.85, 1.15)
+
+    # Glowing trail: a thin cone pointing back along the flight direction
+    direction = (
+        start[0] - end[0],
+        start[1] - end[1],
+        start[2] - end[2],
+    )
+    length = math.sqrt(sum(c * c for c in direction)) or 1.0
+    unit = tuple(c / length for c in direction)
+
+    bpy.ops.mesh.primitive_cone_add(
+        radius1=0.0,
+        radius2=rock.dimensions.x * 0.5 if rock.dimensions.x else 0.1,
+        depth=1.4,
+        location=start
+    )
+    trail = bpy.context.object
+    trail.name = f"Meteor_{index:02d}_Trail"
+    trail.data.materials.append(trail_mat)
+    trail.parent = meteor_group
+
+    # Point the cone's axis (local +Z) along the direction of travel
+    trail.rotation_mode = 'QUATERNION'
+    z_axis = (0, 0, 1)
+    cross = (
+        z_axis[1] * unit[2] - z_axis[2] * unit[1],
+        z_axis[2] * unit[0] - z_axis[0] * unit[2],
+        z_axis[0] * unit[1] - z_axis[1] * unit[0],
+    )
+    dot = z_axis[0] * unit[0] + z_axis[1] * unit[1] + z_axis[2] * unit[2]
+    cross_len = math.sqrt(sum(c * c for c in cross))
+    if cross_len > 1e-6:
+        angle = math.atan2(cross_len, dot)
+        axis_n = tuple(c / cross_len for c in cross)
+        s = math.sin(angle / 2)
+        trail.rotation_quaternion = (math.cos(angle / 2), axis_n[0]*s, axis_n[1]*s, axis_n[2]*s)
+
+    # Offset the trail half its length behind the rock so it streaks back
+    trail.location = (
+        start[0] + unit[0] * 0.7,
+        start[1] + unit[1] * 0.7,
+        start[2] + unit[2] * 0.7,
+    )
+
+    # -------------------------
+    # ANIMATE: streak from start to end, then disappear, then loop
+    # -------------------------
+    for obj, offset in ((rock, (0, 0, 0)), (trail, (unit[0]*0.7, unit[1]*0.7, unit[2]*0.7))):
+
+        obj.location = (
+            start[0] + offset[0],
+            start[1] + offset[1],
+            start[2] + offset[2],
+        )
+        obj.keyframe_insert(data_path="location", frame=frame_in)
+
+        obj.location = (
+            end[0] + offset[0],
+            end[1] + offset[1],
+            end[2] + offset[2],
+        )
+        obj.keyframe_insert(data_path="location", frame=frame_out)
+
+        # Hide before it appears and after it finishes, so it doesn't
+        # just sit visible at start/end position outside its window
+        obj.scale = (1, 1, 1)
+        obj.keyframe_insert(data_path="scale", frame=frame_in)
+        obj.scale = (1, 1, 1)
+        obj.keyframe_insert(data_path="scale", frame=frame_out - 1)
+        obj.scale = (0, 0, 0)
+        obj.keyframe_insert(data_path="scale", frame=frame_out)
+        obj.scale = (0, 0, 0)
+        obj.keyframe_insert(data_path="scale", frame=max(frame_in - 1, 1))
+
+    return rock, trail
+
+# -------------------------
+# GENERATE A SHOWER OF METEORS
+# -------------------------
+num_meteors = 150
+shower_span = frame_end  # spread meteors across the whole animation
+
+for i in range(num_meteors):
+
+    # Random entry point from far outside the system, random exit
+    # point passing roughly through the inner solar system
+    theta = random.uniform(0, 2 * math.pi)
+    entry_radius = random.uniform(45, 60)
+    exit_radius = random.uniform(5, 20)
+
+    start = (
+        entry_radius * math.cos(theta),
+        entry_radius * math.sin(theta),
+        random.uniform(8, 18),
+    )
+    end = (
+        exit_radius * math.cos(theta + random.uniform(-0.6, 0.6)),
+        exit_radius * math.sin(theta + random.uniform(-0.6, 0.6)),
+        random.uniform(-4, 4),
+    )
+
+    streak_duration = random.randint(15, 35)
+    frame_in = random.randint(1, max(shower_span - streak_duration - 1, 1))
+    frame_out = frame_in + streak_duration
+
+    make_meteor(i, start, end, frame_in, frame_out)
+
+
+
+
+
+# =========================================================
+# ROCKET EARTH -> MOON
+# =========================================================
+
+# Rocket root
+bpy.ops.object.empty_add(type='PLAIN_AXES')
+rocket = bpy.context.object
+rocket.name = "Moon_Rocket"
+
+# Parent to Earth
+rocket.parent = earth
+
+# =========================================================
+# BODY
+# =========================================================
+
+bpy.ops.mesh.primitive_cylinder_add(
+    radius=0.25,
+    depth=1.8,
+    location=(0, 0, 0)
+)
+
+body = bpy.context.object
+body.name = "Rocket_Body"
+body.parent = rocket
+
+# =========================================================
+# NOSE
+# =========================================================
+
+bpy.ops.mesh.primitive_cone_add(
+    radius1=0.25,
+    depth=0.7,
+    location=(0, 0, 1.25)
+)
+
+nose = bpy.context.object
+nose.name = "Rocket_Nose"
+nose.parent = rocket
+
+# =========================================================
+# MATERIAL
+# =========================================================
+
+rocket_mat = bpy.data.materials.new("RocketMaterial")
+rocket_mat.use_nodes = True
+
+rmnodes = rocket_mat.node_tree.nodes
+rmlinks = rocket_mat.node_tree.links
+rmnodes.clear()
+
+rm_bsdf = rmnodes.new("ShaderNodeBsdfPrincipled")
+rm_output = rmnodes.new("ShaderNodeOutputMaterial")
+
+rm_bsdf.inputs["Base Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+rm_bsdf.inputs["Roughness"].default_value = 0.25
+
+rmlinks.new(rm_bsdf.outputs["BSDF"], rm_output.inputs["Surface"])
+
+# Also set the material's viewport display color so the rocket reads
+# as white under plain Solid shading, not just Material Preview/Render
+rocket_mat.diffuse_color = (1.0, 1.0, 1.0, 1.0)
+
+body.data.materials.clear()
+nose.data.materials.clear()
+body.data.materials.append(rocket_mat)
+nose.data.materials.append(rocket_mat)
+
+body.color = (1.0, 1.0, 1.0, 1.0)
+nose.color = (1.0, 1.0, 1.0, 1.0)
+
+# =========================================================
+# ENGINE FLAME
+# =========================================================
+
+bpy.ops.mesh.primitive_uv_sphere_add(
+    radius=0.12,
+    location=(0, 0, -1.05)
+)
+
+flame = bpy.context.object
+flame.name = "Rocket_Flame"
+flame.parent = rocket
+
+flame_mat = bpy.data.materials.new("FlameMaterial")
+flame_mat.use_nodes = True
+
+nodes = flame_mat.node_tree.nodes
+links = flame_mat.node_tree.links
+
+nodes.clear()
+
+emission = nodes.new("ShaderNodeEmission")
+output = nodes.new("ShaderNodeOutputMaterial")
+
+emission.inputs["Color"].default_value = (
+    1.0,
+    0.4,
+    0.0,
+    1.0
+)
+
+emission.inputs["Strength"].default_value = 40
+
+links.new(
+    emission.outputs["Emission"],
+    output.inputs["Surface"]
+)
+
+flame.data.materials.append(flame_mat)
+
+# =========================================================
+# ROCKET SCALE
+# =========================================================
+
+rocket.scale = (
+    0.3,
+    0.3,
+    0.3
+)
+
+# Upright on Earth
+rocket.rotation_euler = (
+    0,
+    0,
+    0
+)
+
+# =========================================================
+# ANIMATION
+# =========================================================
+
+launch_frame = 100
+liftoff_frame = 160
+transfer_frame = 400
+arrival_frame = 800
+
+# ---------------------------------------------------------
+# Sitting on Earth's surface
+# ---------------------------------------------------------
+
+rocket.location = (
+    0.0,
+    0.0,
+    1.15
+)
+
+rocket.keyframe_insert(
+    data_path="location",
+    frame=launch_frame
+)
+
+# ---------------------------------------------------------
+# Lift off
+# ---------------------------------------------------------
+
+rocket.location = (
+    0.0,
+    0.0,
+    2.2
+)
+
+rocket.keyframe_insert(
+    data_path="location",
+    frame=liftoff_frame
+)
+
+# ---------------------------------------------------------
+# Transfer arc
+# ---------------------------------------------------------
+
+rocket.location = (
+    0.8,
+    0.8,
+    3.0
+)
+
+rocket.keyframe_insert(
+    data_path="location",
+    frame=transfer_frame
+)
+
+# ---------------------------------------------------------
+# Arrive near Moon
+# ---------------------------------------------------------
+
+rocket.location = (
+    moon.location.x - 0.15,
+    moon.location.y,
+    moon.location.z
+)
+
+rocket.keyframe_insert(
+    data_path="location",
+    frame=arrival_frame
+)
+
+# ---------------------------------------------------------
+# Stay there
+# ---------------------------------------------------------
+
+rocket.keyframe_insert(
+    data_path="location",
+    frame=frame_end
+)
+
+# =========================================================
+# BEZIER KEYFRAMES
+# =========================================================
+
+bpy.context.preferences.edit.keyframe_new_interpolation_type = 'BEZIER'
+
+# =========================================================
 # CAMERA
 # =========================================================
-bpy.ops.object.camera_add(location=(0, -70, 25))
+bpy.ops.object.camera_add(location=(0, -100, 50))
 cam = bpy.context.object
-cam.rotation_euler = (math.radians(70), 0, 0)
+cam.data.lens = 40
+cam.name = "SolarSystemCam"
+
+# Look slightly downward at the origin
+cam.rotation_euler = (
+    math.radians(60),
+    0,
+    0
+)
 
 bpy.context.scene.camera = cam
 bpy.context.scene.render.engine = 'BLENDER_EEVEE'
 bpy.context.scene.render.fps = 30
 
 print("Continuous Orbit System Enabled (No Stop at End)")
+print("Orbit path rings added (viewport guides, hidden from render)")
