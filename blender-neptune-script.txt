@@ -1,0 +1,198 @@
+import bpy
+import math
+import os
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+NEPTUNE_TEXTURE = r"INSERT PATH HERE"
+SPACE_TEXTURE = r"INSERT PATH HERE"
+
+# ============================================================
+# CLEAN SCENE
+# ============================================================
+
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete()
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def load_image(path):
+    if path == "INSERT PATH HERE":
+        return None
+
+    if not os.path.exists(path):
+        print(f"Missing texture: {path}")
+        return None
+
+    return bpy.data.images.load(path)
+
+
+def create_planet_material(name, texture_path):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    nodes.clear()
+
+    tex_coord = nodes.new("ShaderNodeTexCoord")
+    mapping = nodes.new("ShaderNodeMapping")
+    image_tex = nodes.new("ShaderNodeTexImage")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    output = nodes.new("ShaderNodeOutputMaterial")
+
+    tex_coord.location = (-800, 0)
+    mapping.location = (-600, 0)
+    image_tex.location = (-400, 0)
+    bsdf.location = (-100, 0)
+    output.location = (200, 0)
+
+    img = load_image(texture_path)
+    if img:
+        image_tex.image = img
+
+    links.new(tex_coord.outputs["UV"], mapping.inputs["Vector"])
+    links.new(mapping.outputs["Vector"], image_tex.inputs["Vector"])
+    links.new(image_tex.outputs["Color"], bsdf.inputs["Base Color"])
+    links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+
+    return mat
+
+
+def create_moon_material(name):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+
+    bsdf.inputs["Base Color"].default_value = (
+        0.8,
+        0.8,
+        0.8,
+        1.0
+    )
+
+    bsdf.inputs["Roughness"].default_value = 0.9
+
+    return mat
+
+# ============================================================
+# NEPTUNE
+# ============================================================
+
+bpy.ops.mesh.primitive_uv_sphere_add(
+    radius=2.2,
+    location=(0, 0, 0)
+)
+
+neptune = bpy.context.active_object
+neptune.name = "Neptune"
+
+neptune_mat = create_planet_material(
+    "NeptuneMaterial",
+    NEPTUNE_TEXTURE
+)
+
+neptune.data.materials.append(neptune_mat)
+
+# Neptune axial tilt
+neptune.rotation_euler.x = math.radians(28.3)
+
+# ============================================================
+# TRITON
+# ============================================================
+
+bpy.ops.mesh.primitive_uv_sphere_add(
+    radius=0.35,
+    location=(6, 0, 0)
+)
+
+triton = bpy.context.active_object
+triton.name = "Triton"
+
+triton_mat = create_moon_material("TritonMaterial")
+triton.data.materials.append(triton_mat)
+
+# ============================================================
+# CAMERA
+# ============================================================
+
+bpy.ops.object.camera_add(
+    location=(0, -16, 5)
+)
+
+camera = bpy.context.active_object
+
+camera.rotation_euler = (
+    math.radians(73),
+    0,
+    0
+)
+
+bpy.context.scene.camera = camera
+
+# ============================================================
+# SUN LIGHT
+# ============================================================
+
+bpy.ops.object.light_add(
+    type='SUN',
+    location=(15, -15, 15)
+)
+
+sun = bpy.context.active_object
+sun.data.energy = 4.0
+
+# ============================================================
+# SPACE BACKGROUND
+# ============================================================
+
+world = bpy.context.scene.world
+
+if world is None:
+    world = bpy.data.worlds.new("World")
+    bpy.context.scene.world = world
+
+world.use_nodes = True
+
+nodes = world.node_tree.nodes
+links = world.node_tree.links
+
+nodes.clear()
+
+env_tex = nodes.new("ShaderNodeTexEnvironment")
+background = nodes.new("ShaderNodeBackground")
+output = nodes.new("ShaderNodeOutputWorld")
+
+env_tex.location = (-400, 0)
+background.location = (-100, 0)
+output.location = (200, 0)
+
+space_img = load_image(SPACE_TEXTURE)
+
+if space_img:
+    env_tex.image = space_img
+
+links.new(env_tex.outputs["Color"], background.inputs["Color"])
+links.new(background.outputs["Background"], output.inputs["Surface"])
+
+# ============================================================
+# RENDER SETTINGS
+# ============================================================
+
+scene = bpy.context.scene
+
+try:
+    scene.render.engine = 'CYCLES'
+except:
+    pass
+
+scene.render.resolution_x = 1920
+scene.render.resolution_y = 1080
+
+print("Neptune and Triton created successfully.")

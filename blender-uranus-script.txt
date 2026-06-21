@@ -1,0 +1,209 @@
+import bpy
+import math
+import os
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+URANUS_TEXTURE = r"INSERT PATH HERE"
+SPACE_TEXTURE = r"INSERT PATH HERE"
+
+# ============================================================
+# CLEAN SCENE
+# ============================================================
+
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete()
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def load_image(path):
+    if path == "INSERT PATH HERE":
+        return None
+
+    if not os.path.exists(path):
+        print(f"Missing file: {path}")
+        return None
+
+    return bpy.data.images.load(path)
+
+
+def create_planet_material(name, texture_path):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    nodes.clear()
+
+    texcoord = nodes.new("ShaderNodeTexCoord")
+    mapping = nodes.new("ShaderNodeMapping")
+    image = nodes.new("ShaderNodeTexImage")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    output = nodes.new("ShaderNodeOutputMaterial")
+
+    texcoord.location = (-800, 0)
+    mapping.location = (-600, 0)
+    image.location = (-400, 0)
+    bsdf.location = (-100, 0)
+    output.location = (200, 0)
+
+    img = load_image(texture_path)
+    if img:
+        image.image = img
+
+    links.new(texcoord.outputs["UV"], mapping.inputs["Vector"])
+    links.new(mapping.outputs["Vector"], image.inputs["Vector"])
+    links.new(image.outputs["Color"], bsdf.inputs["Base Color"])
+    links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+
+    return mat
+
+
+def create_moon_material(name):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+
+    bsdf.inputs["Base Color"].default_value = (
+        0.75,
+        0.75,
+        0.75,
+        1.0
+    )
+
+    bsdf.inputs["Roughness"].default_value = 0.9
+
+    return mat
+
+# ============================================================
+# URANUS
+# ============================================================
+
+bpy.ops.mesh.primitive_uv_sphere_add(
+    radius=2.2,
+    location=(0, 0, 0)
+)
+
+uranus = bpy.context.active_object
+uranus.name = "Uranus"
+
+uranus_mat = create_planet_material(
+    "UranusMaterial",
+    URANUS_TEXTURE
+)
+
+uranus.data.materials.append(uranus_mat)
+
+# Uranus tilt (~98 degrees)
+uranus.rotation_euler.x = math.radians(97.8)
+
+# ============================================================
+# MOONS
+# ============================================================
+
+moon_material = create_moon_material("MoonMaterial")
+
+moons = [
+    ("Miranda", 0.15, 3.0),
+    ("Ariel",   0.22, 4.0),
+    ("Umbriel", 0.20, 5.2),
+    ("Titania", 0.30, 6.8),
+    ("Oberon",  0.28, 8.4),
+]
+
+for name, radius, distance in moons:
+
+    bpy.ops.mesh.primitive_uv_sphere_add(
+        radius=radius,
+        location=(distance, 0, 0)
+    )
+
+    moon = bpy.context.active_object
+    moon.name = name
+
+    moon.data.materials.append(moon_material)
+
+# ============================================================
+# CAMERA
+# ============================================================
+
+bpy.ops.object.camera_add(
+    location=(0, -18, 6)
+)
+
+camera = bpy.context.active_object
+
+camera.rotation_euler = (
+    math.radians(72),
+    0,
+    0
+)
+
+bpy.context.scene.camera = camera
+
+# ============================================================
+# SUN LIGHT
+# ============================================================
+
+bpy.ops.object.light_add(
+    type='SUN',
+    location=(15, -15, 15)
+)
+
+sun = bpy.context.active_object
+sun.data.energy = 4.0
+
+# ============================================================
+# SPACE BACKGROUND
+# ============================================================
+
+world = bpy.context.scene.world
+
+if world is None:
+    world = bpy.data.worlds.new("World")
+    bpy.context.scene.world = world
+
+world.use_nodes = True
+
+nodes = world.node_tree.nodes
+links = world.node_tree.links
+
+nodes.clear()
+
+env = nodes.new("ShaderNodeTexEnvironment")
+bg = nodes.new("ShaderNodeBackground")
+out = nodes.new("ShaderNodeOutputWorld")
+
+env.location = (-400, 0)
+bg.location = (-100, 0)
+out.location = (200, 0)
+
+space_img = load_image(SPACE_TEXTURE)
+
+if space_img:
+    env.image = space_img
+
+links.new(env.outputs["Color"], bg.inputs["Color"])
+links.new(bg.outputs["Background"], out.inputs["Surface"])
+
+# ============================================================
+# RENDER SETTINGS
+# ============================================================
+
+scene = bpy.context.scene
+
+try:
+    scene.render.engine = 'CYCLES'
+except:
+    pass
+
+scene.render.resolution_x = 1920
+scene.render.resolution_y = 1080
+
+print("Uranus and its five major moons created successfully.")

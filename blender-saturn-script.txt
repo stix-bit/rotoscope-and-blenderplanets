@@ -1,0 +1,192 @@
+import bpy
+import math
+import os
+
+# ============================================================
+# CONFIGURATION
+# ============================================================
+
+SATURN_TEXTURE = r"INSERT PATH HERE"
+RING_TEXTURE = r"INSERT PATH HERE"
+SPACE_TEXTURE = r"INSERT PATH HERE"
+
+# ============================================================
+# CLEAN SCENE
+# ============================================================
+
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.delete()
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def load_image(path):
+    if path == "INSERT PATH HERE":
+        print("Texture path not set.")
+        return None
+
+    if not os.path.exists(path):
+        print(f"Missing texture: {path}")
+        return None
+
+    return bpy.data.images.load(path)
+
+
+def create_material_with_texture(name, image_path):
+    mat = bpy.data.materials.new(name=name)
+    mat.use_nodes = True
+
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+
+    nodes.clear()
+
+    tex_coord = nodes.new("ShaderNodeTexCoord")
+    mapping = nodes.new("ShaderNodeMapping")
+    image_tex = nodes.new("ShaderNodeTexImage")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    output = nodes.new("ShaderNodeOutputMaterial")
+
+    tex_coord.location = (-800, 0)
+    mapping.location = (-600, 0)
+    image_tex.location = (-400, 0)
+    bsdf.location = (-100, 0)
+    output.location = (200, 0)
+
+    image = load_image(image_path)
+    if image:
+        image_tex.image = image
+
+    links.new(tex_coord.outputs["UV"], mapping.inputs["Vector"])
+    links.new(mapping.outputs["Vector"], image_tex.inputs["Vector"])
+    links.new(image_tex.outputs["Color"], bsdf.inputs["Base Color"])
+    links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+
+    return mat
+
+
+# ============================================================
+# SATURN
+# ============================================================
+
+bpy.ops.mesh.primitive_uv_sphere_add(
+    radius=2.0,
+    location=(0, 0, 0)
+)
+
+saturn = bpy.context.active_object
+saturn.name = "Saturn"
+
+saturn_mat = create_material_with_texture(
+    "SaturnMaterial",
+    SATURN_TEXTURE
+)
+
+saturn.data.materials.append(saturn_mat)
+
+# Saturn tilt
+saturn.rotation_euler.x = math.radians(26.7)
+
+# ============================================================
+# RINGS
+# ============================================================
+
+bpy.ops.mesh.primitive_torus_add(
+    major_radius=4.0,
+    minor_radius=0.5,
+    location=(0, 0, 0)
+)
+
+rings = bpy.context.active_object
+rings.name = "SaturnRings"
+
+rings.scale.z = 0.02
+rings.rotation_euler.x = math.radians(26.7)
+
+ring_mat = create_material_with_texture(
+    "RingMaterial",
+    RING_TEXTURE
+)
+
+ring_mat.blend_method = 'BLEND'
+
+rings.data.materials.append(ring_mat)
+
+# ============================================================
+# CAMERA
+# ============================================================
+
+bpy.ops.object.camera_add(
+    location=(0, -14, 4)
+)
+
+camera = bpy.context.active_object
+camera.rotation_euler = (
+    math.radians(75),
+    0,
+    0
+)
+
+bpy.context.scene.camera = camera
+
+# ============================================================
+# SUN LIGHT
+# ============================================================
+
+bpy.ops.object.light_add(
+    type='SUN',
+    location=(15, -10, 10)
+)
+
+sun = bpy.context.active_object
+sun.data.energy = 4.0
+
+# ============================================================
+# SPACE BACKGROUND
+# ============================================================
+
+world = bpy.context.scene.world
+
+if world is None:
+    world = bpy.data.worlds.new("World")
+    bpy.context.scene.world = world
+
+world.use_nodes = True
+
+nodes = world.node_tree.nodes
+links = world.node_tree.links
+
+nodes.clear()
+
+env_tex = nodes.new("ShaderNodeTexEnvironment")
+background = nodes.new("ShaderNodeBackground")
+world_output = nodes.new("ShaderNodeOutputWorld")
+
+env_tex.location = (-400, 0)
+background.location = (-100, 0)
+world_output.location = (200, 0)
+
+space_img = load_image(SPACE_TEXTURE)
+
+if space_img:
+    env_tex.image = space_img
+
+links.new(env_tex.outputs["Color"], background.inputs["Color"])
+links.new(background.outputs["Background"], world_output.inputs["Surface"])
+
+# ============================================================
+# RENDER SETTINGS
+# ============================================================
+
+scene = bpy.context.scene
+
+try:
+    scene.render.engine = 'CYCLES'
+except:
+    pass
+
+scene.render.resolution_x = 1920
+scene.render.resolution_y = 1080
+
+print("Saturn scene created successfully.")
